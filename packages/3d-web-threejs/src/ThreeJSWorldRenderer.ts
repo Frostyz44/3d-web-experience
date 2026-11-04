@@ -225,7 +225,7 @@ export class ThreeJSWorldRenderer implements IRenderer {
     this.composer.sun?.updateCharacterPosition(
       new Vector3(characterPosition?.x || 0, characterPosition?.y || 0, characterPosition?.z || 0),
     );
-    this.composer.render();
+    this.composer.render(deltaTimeSeconds);
 
     // End frame timing and update TweakPane if visible (skip expensive operations when hidden)
     if (this.threeJSTweakPaneProvider && this.tweakPane && this.tweakPane.guiVisible) {

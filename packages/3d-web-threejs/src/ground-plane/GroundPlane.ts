@@ -23,7 +23,8 @@ ctx.fillRect(0, 0, 1, 1);
 ctx.fillRect(1, 1, 1, 1);
 
 export class GroundPlane extends Group {
-  private readonly floorSize = 210;
+  // Large enough that its edge is always beyond the fog, so the world fades into the horizon.
+  private readonly floorSize = 500;
   private readonly floorTexture: Texture | null = null;
   private readonly floorGeometry = new PlaneGeometry(this.floorSize, this.floorSize, 1, 1);
   private readonly floorMaterial: MeshStandardMaterial;

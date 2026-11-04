@@ -1,4 +1,4 @@
-import { CollisionsManager } from "@mml-io/3d-web-client-core";
+import { CollisionsManager, parseQualityTier } from "@mml-io/3d-web-client-core";
 import { ThreeJSMemoryInspector } from "@mml-io/mml-web-threejs";
 import { Scene, WebGLRenderer } from "three";
 import { FolderApi, Pane } from "tweakpane";
@@ -104,14 +104,17 @@ export class ThreeJSTweakPaneFolders {
     this.rendererFolder.setupChangeEvent(
       this.renderer,
       this.toneMappingFolder.folder,
-      postProcessingManager.toneMappingPassInstance,
+      (toneMapping) => postProcessingManager.setRendererToneMapping(toneMapping),
     );
 
     this.toneMappingFolder.setupChangeEvent(postProcessingManager.toneMappingEffectInstance);
-    this.ssaoFolder.setupChangeEvent(
-      postProcessingManager.effectComposer,
-      postProcessingManager.n8ssaoPass,
-    );
+    this.ssaoFolder.setupChangeEvent((enabled) => {
+      if (enabled) {
+        postProcessingManager.enableEffect("n8ssao");
+      } else {
+        postProcessingManager.disableEffect("n8ssao");
+      }
+    }, postProcessingManager.n8ssaoPass);
     this.bcsFolder.setupChangeEvent(postProcessingManager.bcsInstance);
     this.bloomAndGrainFolder.setupChangeEvent(
       postProcessingManager.bloomEffectInstance,
@@ -128,6 +131,12 @@ export class ThreeJSTweakPaneFolders {
         this.composer.updateSun();
       },
       () => this.composer.setHDRIFromFile(),
+      (tier) => {
+        const setting = parseQualityTier(tier);
+        if (setting) {
+          this.composer.setQualitySetting(setting);
+        }
+      },
     );
     this.environment.folder.hidden = hasLighting === false;
 
