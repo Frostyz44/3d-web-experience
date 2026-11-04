@@ -79,6 +79,26 @@
 
   <!-- A sign in front: emissive 3D text on a post -->
   <m-cylinder x="0.2" y="0.25" z="1" radius="0.04" height="0.5" color="#666666"></m-cylinder>
+  <!-- The TV's video on other shapes and on 3D text: every surface references the one m-video by its id (map-video) -->
+  <m-group z="3.8">
+    <m-cube x="-4.8" y="0.9" width="1.2" height="1.2" depth="1.2" color="#ffffff">
+      <m-material map-video="tv-video" roughness="0.35"></m-material>
+      <m-attr-anim attr="ry" start="0" end="360" duration="9000"></m-attr-anim>
+    </m-cube>
+    <m-sphere x="-2.4" y="0.9" radius="0.7" color="#ffffff">
+      <m-material map-video="tv-video" roughness="0.2" metalness="0.1"></m-material>
+      <m-attr-anim attr="ry" start="0" end="360" duration="9000"></m-attr-anim>
+    </m-sphere>
+    <m-cylinder x="0" y="0.9" radius="0.55" height="1.5" color="#ffffff">
+      <m-material map-video="tv-video" roughness="0.4"></m-material>
+      <m-attr-anim attr="ry" start="0" end="360" duration="9000"></m-attr-anim>
+    </m-cylinder>
+    <m-text content="VIDEO" x="3.4" y="0.9" font-size="0.75" depth="0.3" color="#ffffff">
+      <m-material map-video="tv-video" roughness="0.3"></m-material>
+    </m-text>
+    <m-text content="One video on any shape (m-material map-video)" y="2.2" font-size="0.18" depth="0.03" color="#ffffff"></m-text>
+  </m-group>
+
   <m-text content="3D text&#10;with m-text" x="0.2" y="0.75" z="1" font-size="0.16" depth="0.06" color="#111111">
     <m-material emissive="#38e1ff" emissive-intensity="1.5"></m-material>
   </m-text>
