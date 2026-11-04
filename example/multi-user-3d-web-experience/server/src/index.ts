@@ -78,6 +78,11 @@ const networked3dWebExperienceServer = new Networked3dWebExperienceServer({
         url: `ws:///mml-documents/material-showcase.html`,
         position: { x: 9, y: 0.01, z: -18 },
       },
+      // Requires the MML fork: m-particles (campfire, sparks fountain, confetti cannon, snow)
+      particles: {
+        url: `ws:///mml-documents/particles.html`,
+        position: { x: 0, y: 0.02, z: -42 },
+      },
     },
     environmentConfiguration: {
       fog: {

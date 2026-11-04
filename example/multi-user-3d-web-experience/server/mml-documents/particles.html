@@ -1,0 +1,46 @@
+<!-- m-particles demo: a campfire with smoke, a sparks fountain, a confetti cannon and snow -->
+<m-group>
+  <m-plane color="#3a4a3a" width="30" height="30" rx="-90"></m-plane>
+  <m-light type="point" x="0" y="8" z="6" intensity="300"></m-light>
+
+  <!-- Campfire with smoke -->
+  <m-group x="-4" z="0">
+    <m-cylinder radius="0.08" height="1.2" color="#5a3a1e" y="0.08" rz="90" ry="30"></m-cylinder>
+    <m-cylinder radius="0.08" height="1.2" color="#5a3a1e" y="0.08" rz="90" ry="-30"></m-cylinder>
+    <m-cylinder radius="0.08" height="1.2" color="#4a2e16" y="0.16" rz="90" ry="90"></m-cylinder>
+    <m-light type="point" y="0.6" color="#ff8a30" intensity="4" cast-shadows="false">
+      <m-attr-anim attr="intensity" start="3" end="5" duration="300" ping-pong="true"></m-attr-anim>
+    </m-light>
+    <m-particles preset="smoke" y="0.8"></m-particles>
+    <m-particles preset="fire" y="0.1"></m-particles>
+    <m-label content="Campfire" y="0.02" z="1.4" rx="-90" width="2.4" height="0.5" font-size="48" alignment="center" color="#2a352a" font-color="#ffffff"></m-label>
+  </m-group>
+
+  <!-- Sparks fountain -->
+  <m-group x="0" z="0">
+    <m-cylinder radius="0.3" height="0.6" y="0.3" color="#666"></m-cylinder>
+    <m-particles preset="sparks" y="0.6" speed="6" spread="15"></m-particles>
+    <m-label content="Sparks" y="0.02" z="1.4" rx="-90" width="2.4" height="0.5" font-size="48" alignment="center" color="#2a352a" font-color="#ffffff"></m-label>
+  </m-group>
+
+  <!-- Confetti cannon: click the cannon to fire -->
+  <m-group x="4" z="0">
+    <m-cube id="cannon" width="0.6" height="0.6" depth="0.6" y="0.3" color="#3070e0"></m-cube>
+    <m-particles id="confetti" preset="confetti" y="0.6" rate="0" burst="150"></m-particles>
+    <m-label content="Click to fire" y="0.02" z="1.4" rx="-90" width="2.4" height="0.5" font-size="40" alignment="center" color="#2a352a" font-color="#ffffff"></m-label>
+  </m-group>
+
+  <!-- Snow over a 12 x 6 m area -->
+  <m-particles preset="snow" y="7" z="-3" width="12" depth="6"></m-particles>
+
+  <script>
+    const cannon = document.getElementById("cannon");
+    const confetti = document.getElementById("confetti");
+    function fireConfetti() {
+      confetti.setAttribute("burst-time", document.timeline.currentTime);
+    }
+    cannon.addEventListener("click", fireConfetti);
+    // Also fire every few seconds so there is always something to see.
+    setInterval(fireConfetti, 4000);
+  </script>
+</m-group>
