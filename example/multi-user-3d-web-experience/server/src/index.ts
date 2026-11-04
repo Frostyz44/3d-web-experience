@@ -83,6 +83,11 @@ const networked3dWebExperienceServer = new Networked3dWebExperienceServer({
         url: `ws:///mml-documents/particles.html`,
         position: { x: 0, y: 0.02, z: -42 },
       },
+      // Requires the MML fork: mml-physics runs in the document on the server (ramp, stacks, throwable crates)
+      physics: {
+        url: `ws:///mml-documents/physics.html`,
+        position: { x: -30, y: 0.03, z: -42 },
+      },
     },
     environmentConfiguration: {
       fog: {
