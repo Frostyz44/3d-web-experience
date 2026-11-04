@@ -197,7 +197,7 @@ rendering quality. Every field is optional. Colours are linear RGB with channels
     "ambientLight": { "intensity": 0.6 },
     "shadows": { "softness": 2.5 },
     "postProcessing": {
-      "bloom": { "mode": "emissive", "intensity": 1.8 },
+      "bloom": { "mode": "emissive", "intensity": 1.3 },
       "toneMapping": "aces",
       "exposure": 1
     },
@@ -290,7 +290,7 @@ Applies when `postProcessingEnabled` is `true`.
 | Field | Type | Default | Range | Description |
 |-------|------|---------|-------|-------------|
 | `bloom.mode` | `string` | `"emissive"` | `emissive`, `luminance` | `emissive`: only emissive surfaces (`m-material` `emissive`, `emissive-map`, `emissive-intensity`) and additive particles (fire, sparks) glow, by how bright they are; lit white surfaces and the sky never bloom. `luminance`: anything brighter than `threshold` in the image glows. |
-| `bloom.intensity` | `number` | `1.8` | 0–10 | Glow strength. |
+| `bloom.intensity` | `number` | `1.3` | 0–10 | Glow strength. |
 | `bloom.threshold` | `number` | `0.05` (emissive) / `1.2` (luminance) | 0–100 | Linear brightness below which nothing glows. |
 | `bloom.smoothing` | `number` | `0.3` | 0–10 | Softness of the threshold. |
 | `bloom.radius` | `number` | `0.7` | 0–1 | Spread of the glow. |

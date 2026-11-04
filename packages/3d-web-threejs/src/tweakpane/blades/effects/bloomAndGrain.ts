@@ -18,7 +18,7 @@ export type BloomAndGrainValues = {
 export function createDefaultBloomAndGrainValues(): BloomAndGrainValues {
   return {
     grain: 0.02,
-    bloom: 1.8,
+    bloom: 1.3,
     bloomMode: "emissive",
     bloomThreshold: 0.05,
     bloomSmoothing: 0.3,

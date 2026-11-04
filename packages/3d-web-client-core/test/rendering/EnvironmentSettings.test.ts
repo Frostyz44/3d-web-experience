@@ -212,7 +212,7 @@ describe("bloom settings", () => {
   test("defaults to emissive bloom", () => {
     expect(resolveBloomSettings(undefined)).toEqual({
       mode: "emissive",
-      intensity: 1.8,
+      intensity: 1.3,
       threshold: ENVIRONMENT_DEFAULTS.postProcessing.bloom.emissiveThreshold,
       smoothing: 0.3,
       radius: 0.7,

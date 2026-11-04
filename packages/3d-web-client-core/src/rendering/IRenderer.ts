@@ -163,7 +163,7 @@ export type EnvironmentConfiguration = {
        * "luminance": anything brighter than `threshold` in the rendered image glows (classic bloom).
        */
       mode?: "emissive" | "luminance";
-      /** Default 1.8. */
+      /** Default 1.3. */
       intensity?: number;
       /** Brightness (linear) below which nothing blooms. Default 0.05 (emissive) / 1.2 (luminance). */
       threshold?: number;

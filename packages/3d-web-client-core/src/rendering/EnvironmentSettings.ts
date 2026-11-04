@@ -392,7 +392,7 @@ export const ENVIRONMENT_DEFAULTS = {
   postProcessing: {
     bloom: {
       mode: "emissive" as const,
-      intensity: 1.8,
+      intensity: 1.3,
       emissiveThreshold: 0.05,
       luminanceThreshold: 1.2,
       smoothing: 0.3,
