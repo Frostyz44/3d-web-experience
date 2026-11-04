@@ -17,9 +17,19 @@
   <m-plane rx="-90" width="16" height="12" color="#4a4f5c"></m-plane>
 
   <!-- Title -->
-  <m-text content="MML Visuals" y="3.4" z="-2" font-size="0.7" depth="0.25" color="#ffc94d">
-    <m-material metalness="1" roughness="0.3"></m-material>
+  <m-text content="MML Visuals" y="3.4" z="-2" font-size="0.7" depth="0.25" color="#202428">
+    <m-material
+      roughness="0.4"
+      metalness="0.6"
+      emissive-map="/assets/textures/grid_emissive.png"
+      emissive-intensity="2"
+      repeat-x="3"
+      repeat-y="0.5"
+    >
+      <m-attr-anim attr="emissive-intensity" start="0.6" end="3" duration="1500" ping-pong="true"></m-attr-anim>
+    </m-material>
   </m-text>
+
 
   <!-- TV: the m-video controls playback, sync and positional audio, and is hidden. The screen shows it via m-material. -->
   <m-group x="-3.2" y="0" z="-1" ry="20">
