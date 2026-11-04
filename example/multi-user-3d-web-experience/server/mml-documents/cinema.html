@@ -4,7 +4,7 @@
 
   Based on demos/youtube.html from the MML fork (github.com/Frostyz44/mml-test), without the physics crates.
 
-  The buttons only change the screen's start-time and pause-time (document times), so every user sees the same moment
+  The player bar only changes the screen's start-time and pause-time (document times), so every user sees the same moment
   of the video, including users who join later.
 
   Video: "Big Buck Bunny" (c) copyright 2008, Blender Foundation, www.bigbuckbunny.org, licensed under the Creative
@@ -27,8 +27,8 @@
   <!-- The screen: frame, the m-youtube element and a back wall -->
   <m-cube x="0" y="4.2" z="-7.15" width="12.6" height="7.35" depth="0.2" color="#15171b"></m-cube>
   <m-youtube id="screen" video-id="aqz-KE-bpKQ" x="0" y="4.2" z="-7" width="12" height="6.75" loop="true" volume="1" load-distance="45"></m-youtube>
-  <m-text x="0" y="8.25" z="-7.1" font-size="0.45" depth="0.08" color="#f2f2f2" content="m-youtube"></m-text>
-  <m-text content="Big Buck Bunny (c) Blender Foundation, www.bigbuckbunny.org, CC BY 3.0" x="0" y="0.55" z="-6.95" font-size="0.16" depth="0.02" color="#c8c8c8"></m-text>
+  <m-text x="0" y="8.5" z="-7.1" font-size="0.45" depth="0.08" color="#f2f2f2" content="m-youtube"></m-text>
+  <m-text content="Big Buck Bunny (c) Blender Foundation, www.bigbuckbunny.org, CC BY 3.0" x="0" y="7.98" z="-7.1" font-size="0.13" depth="0.02" color="#9aa3ad"></m-text>
 
   <!-- Seats: three rows of benches with an aisle in the middle -->
   <m-group x="-5" z="5.5">
@@ -57,35 +57,67 @@
   </m-group>
 
 
-  <!-- Buttons -->
-  <m-group x="-4.5" y="0" z="3">
-    <m-cube id="back-button" class="button" y="0.5" width="1.4" height="0.8" depth="0.4" color="#5a6470"></m-cube>
-    <m-text content="-10 s" y="0.5" z="0.22" font-size="0.24" depth="0.04" color="#ffffff"></m-text>
+  <!--
+    Player bar under the screen, like a video player: play/pause, restart, -10 s / +10 s, a progress bar (click it to
+    jump) and the time. The progress fill and knob are m-attr-anim animations with the same start-time and pause-time
+    as the video, so every client moves them smoothly by itself without any network traffic.
+  -->
+  <m-group id="player-bar" y="0.42" z="-6.98">
+    <m-cube width="12.6" height="0.64" depth="0.14" color="#0f1115">
+      <m-material roughness="0.45" metalness="0.4"></m-material>
+    </m-cube>
+    <!-- A thin glowing line along the top edge of the bar -->
+    <m-cube y="0.31" z="0.04" width="12.6" height="0.02" depth="0.08" color="#0b1a22" cast-shadows="false">
+      <m-material emissive="#2ad4ff" emissive-intensity="1.2"></m-material>
+    </m-cube>
+
+    <!-- Play / pause -->
+    <m-cube id="toggle-button" x="-5.75" z="0.08" width="0.62" height="0.46" depth="0.06" color="#2ad4ff">
+      <m-material roughness="0.3" emissive="#2ad4ff" emissive-intensity="0.25"></m-material>
+    </m-cube>
+    <m-text id="play-icon" content="&gt;" x="-5.73" z="0.13" font-size="0.3" depth="0.03" color="#0f1115" visible="false"></m-text>
+    <m-cube id="pause-bar-left" x="-5.81" z="0.13" width="0.07" height="0.24" depth="0.03" color="#0f1115"></m-cube>
+    <m-cube id="pause-bar-right" x="-5.69" z="0.13" width="0.07" height="0.24" depth="0.03" color="#0f1115"></m-cube>
+
+    <!-- Restart, back 10 s, forward 10 s -->
+    <m-cube id="restart-button" x="-5.02" z="0.08" width="0.62" height="0.46" depth="0.06" color="#262c35"></m-cube>
+    <m-text id="restart-icon" content="|&lt;" x="-5.02" z="0.13" font-size="0.2" depth="0.03" color="#ffffff"></m-text>
+    <m-cube id="back-button" x="-4.32" z="0.08" width="0.62" height="0.46" depth="0.06" color="#262c35"></m-cube>
+    <m-text id="back-icon" content="-10" x="-4.32" z="0.13" font-size="0.17" depth="0.03" color="#ffffff"></m-text>
+    <m-cube id="forward-button" x="-3.62" z="0.08" width="0.62" height="0.46" depth="0.06" color="#262c35"></m-cube>
+    <m-text id="forward-icon" content="+10" x="-3.62" z="0.13" font-size="0.17" depth="0.03" color="#ffffff"></m-text>
+
+    <!-- Progress: track from x = -3.1 to x = 3.9 (click it to jump), glowing fill and knob -->
+    <m-cube id="track" x="0.4" z="0.08" width="7" height="0.09" depth="0.04" color="#3a414c"></m-cube>
+    <m-cube id="track-fill" x="-3.1" z="0.1" width="0" height="0.09" depth="0.04" color="#2ad4ff" cast-shadows="false">
+      <m-material emissive="#2ad4ff" emissive-intensity="1.4"></m-material>
+      <m-attr-anim id="fill-width" attr="width" start="0" end="7" duration="635000" loop="true"></m-attr-anim>
+      <m-attr-anim id="fill-x" attr="x" start="-3.1" end="0.4" duration="635000" loop="true"></m-attr-anim>
+    </m-cube>
+    <m-sphere id="track-knob" x="-3.1" z="0.12" radius="0.09" color="#ffffff" cast-shadows="false">
+      <m-material emissive="#ffffff" emissive-intensity="0.6"></m-material>
+      <m-attr-anim id="knob-x" attr="x" start="-3.1" end="3.9" duration="635000" loop="true"></m-attr-anim>
+    </m-sphere>
+
+    <!-- Time -->
+    <m-text id="time" content="0:00 / 10:35" x="5.1" z="0.1" font-size="0.2" depth="0.03" color="#ffffff"></m-text>
   </m-group>
-  <m-group x="-2.5" y="0" z="3">
-    <m-cube id="play-button" class="button" y="0.5" width="1.4" height="0.8" depth="0.4" color="#4cb877"></m-cube>
-    <m-text content="Play" y="0.5" z="0.22" font-size="0.24" depth="0.04" color="#ffffff"></m-text>
-  </m-group>
-  <m-group x="-0.5" y="0" z="3">
-    <m-cube id="pause-button" class="button" y="0.5" width="1.4" height="0.8" depth="0.4" color="#f2b33d"></m-cube>
-    <m-text content="Pause" y="0.5" z="0.22" font-size="0.24" depth="0.04" color="#ffffff"></m-text>
-  </m-group>
-  <m-group x="1.5" y="0" z="3">
-    <m-cube id="restart-button" class="button" y="0.5" width="1.4" height="0.8" depth="0.4" color="#e8553e"></m-cube>
-    <m-text content="Restart" y="0.5" z="0.22" font-size="0.24" depth="0.04" color="#ffffff"></m-text>
-  </m-group>
-  <m-group x="3.5" y="0" z="3">
-    <m-cube id="forward-button" class="button" y="0.5" width="1.4" height="0.8" depth="0.4" color="#5a6470"></m-cube>
-    <m-text content="+10 s" y="0.5" z="0.22" font-size="0.24" depth="0.04" color="#ffffff"></m-text>
-  </m-group>
-  <m-text id="status" content="Playing" x="-8.2" y="1.2" z="3" font-size="0.24" depth="0.04" color="#ffffff"></m-text>
 </m-group>
 
 <script>
 //<![CDATA[
 (function () {
+  // Length of the video in milliseconds (Big Buck Bunny: 10:35). The document cannot ask YouTube, so it is set here;
+  // update it when changing the video-id.
+  var durationMs = 635000;
+  var trackLeft = -3.1;
+  var trackWidth = 7;
+
   var screen = document.getElementById("screen");
-  var statusLabel = document.getElementById("status");
+  var timeText = document.getElementById("time");
+  var animations = ["fill-width", "fill-x", "knob-x"].map(function (id) {
+    return document.getElementById(id);
+  });
 
   function now() {
     return Math.round(Number(document.timeline.currentTime));
@@ -99,7 +131,8 @@
   function position() {
     var start = Number(screen.getAttribute("start-time") || 0);
     var end = isPaused() ? Number(screen.getAttribute("pause-time")) : now();
-    return Math.max(0, end - start);
+    var elapsed = Math.max(0, end - start);
+    return elapsed % durationMs;
   }
 
   function formatTime(ms) {
@@ -109,69 +142,102 @@
     return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
   }
 
-  function updateStatus() {
-    statusLabel.setAttribute(
-      "content",
-      (isPaused() ? "Paused at " : "Playing from ") + formatTime(position())
-    );
+  // The progress animations follow the video's start and pause times, so clients animate them themselves
+  function updateBar() {
+    var start = screen.getAttribute("start-time") || "0";
+    animations.forEach(function (animation) {
+      animation.setAttribute("start-time", start);
+      if (isPaused()) {
+        animation.setAttribute("pause-time", screen.getAttribute("pause-time"));
+      } else {
+        animation.removeAttribute("pause-time");
+      }
+    });
+    var paused = isPaused();
+    document.getElementById("play-icon").setAttribute("visible", paused ? "true" : "false");
+    document.getElementById("pause-bar-left").setAttribute("visible", paused ? "false" : "true");
+    document.getElementById("pause-bar-right").setAttribute("visible", paused ? "false" : "true");
+    updateTime();
   }
 
-  // Seeks to `ms` into the video, keeping it playing or paused
+  function updateTime() {
+    var text = formatTime(position()) + " / " + formatTime(durationMs);
+    if (timeText.getAttribute("content") !== text) {
+      timeText.setAttribute("content", text);
+    }
+  }
+
+  // Jumps to `ms` into the video, keeping it playing or paused
   function seekTo(ms) {
-    ms = Math.max(0, ms);
+    ms = Math.min(durationMs - 1000, Math.max(0, ms));
     if (isPaused()) {
       screen.setAttribute("start-time", String(Number(screen.getAttribute("pause-time")) - ms));
     } else {
       screen.setAttribute("start-time", String(now() - ms));
     }
-    updateStatus();
+    updateBar();
   }
 
-  document.getElementById("play-button").addEventListener("click", function () {
-    if (!isPaused()) {
-      return;
-    }
-    var at = position();
-    screen.removeAttribute("pause-time");
-    screen.setAttribute("start-time", String(now() - at));
-    updateStatus();
-  });
-
-  document.getElementById("pause-button").addEventListener("click", function () {
+  function toggle() {
     if (isPaused()) {
-      return;
+      var at = position();
+      screen.removeAttribute("pause-time");
+      screen.setAttribute("start-time", String(now() - at));
+    } else {
+      screen.setAttribute("pause-time", String(now()));
     }
-    screen.setAttribute("pause-time", String(now()));
-    updateStatus();
-  });
+    updateBar();
+  }
 
-  document.getElementById("restart-button").addEventListener("click", function () {
-    screen.removeAttribute("pause-time");
-    screen.setAttribute("start-time", String(now()));
-    updateStatus();
-  });
+  // A short flash on the pressed button
+  function flash(button) {
+    var color = button.getAttribute("color");
+    button.setAttribute("color", "#ffffff");
+    setTimeout(function () {
+      button.setAttribute("color", color);
+    }, 150);
+  }
 
-  document.getElementById("back-button").addEventListener("click", function () {
+  // Each button reacts to clicks on itself and on its icon
+  function onPress(ids, buttonId, action) {
+    var button = document.getElementById(buttonId);
+    ids.forEach(function (id) {
+      document.getElementById(id).addEventListener("click", function () {
+        flash(button);
+        action();
+      });
+    });
+  }
+
+  onPress(["toggle-button", "play-icon", "pause-bar-left", "pause-bar-right"], "toggle-button", toggle);
+  onPress(["restart-button", "restart-icon"], "restart-button", function () {
+    seekTo(0);
+  });
+  onPress(["back-button", "back-icon"], "back-button", function () {
     seekTo(position() - 10000);
   });
-
-  document.getElementById("forward-button").addEventListener("click", function () {
+  onPress(["forward-button", "forward-icon"], "forward-button", function () {
     seekTo(position() + 10000);
   });
 
-  document.getElementById("reset-button").addEventListener("click", function () {
-    startStates.forEach(function (state) {
-      state.element.setAttribute("x", state.x);
-      state.element.setAttribute("y", state.y);
-      state.element.setAttribute("z", state.z);
-      state.element.setAttribute("rx", "0");
-      state.element.setAttribute("ry", "0");
-      state.element.setAttribute("rz", "0");
-    });
+  // Clicking the progress bar jumps to that point. Click positions are relative to the clicked element.
+  function seekToTrackX(x) {
+    seekTo(((x - trackLeft) / trackWidth) * durationMs);
+  }
+  document.getElementById("track").addEventListener("click", function (event) {
+    seekToTrackX(trackLeft + trackWidth / 2 + event.detail.position.x);
+  });
+  document.getElementById("track-fill").addEventListener("click", function (event) {
+    var filled = (position() / durationMs) * trackWidth;
+    seekToTrackX(trackLeft + filled / 2 + event.detail.position.x);
+  });
+  document.getElementById("track-knob").addEventListener("click", function (event) {
+    seekToTrackX(trackLeft + (position() / durationMs) * trackWidth + event.detail.position.x);
   });
 
   screen.setAttribute("start-time", String(now()));
-  updateStatus();
+  updateBar();
+  setInterval(updateTime, 500);
 })();
 //]]>
 </script>
