@@ -1,21 +1,20 @@
 <m-group>
   <!--
-    Touch and drag demo. Tap a shape to change its colour. Press and drag a shape to move it.
-    Drag the ground or the sky to move the camera. Two fingers pinch to zoom.
+    Touch and drag demo for the MML fork (github.com/Frostyz44/mml-test).
+    Tap a shape to recolour it. Drag a shape to slide it across the floor, and let go while moving to throw it.
+    Only one player can hold a shape at a time. Walking while holding a shape carries it along.
   -->
   <m-light type="point" intensity="900" x="4" y="8" z="6"></m-light>
   <m-plane rx="-90" width="14" height="10" color="#7a9a7a"></m-plane>
 
   <m-cube class="toy" x="-2.5" y="0.5" color="#d6302b" drag-enabled="true" drag-plane="ground" drag-lift="false" drag-preview="true">
-    <!-- Glide between the server's position updates (20 per second) instead of jumping -->
+    <!-- Glide between the server's position updates instead of jumping -->
     <m-attr-lerp attr="x,y,z,sx,sy,sz" duration="90" easing="easeOutQuad"></m-attr-lerp>
   </m-cube>
   <m-sphere class="toy" x="0" y="0.5" radius="0.5" color="#2b6bd6" drag-enabled="true" drag-plane="ground" drag-lift="false" drag-preview="true">
-    <!-- Glide between the server's position updates (20 per second) instead of jumping -->
     <m-attr-lerp attr="x,y,z,sx,sy,sz" duration="90" easing="easeOutQuad"></m-attr-lerp>
   </m-sphere>
   <m-cylinder class="toy" x="2.5" y="0.5" color="#e0b030" drag-enabled="true" drag-plane="ground" drag-lift="false" drag-preview="true">
-    <!-- Glide between the server's position updates (20 per second) instead of jumping -->
     <m-attr-lerp attr="x,y,z,sx,sy,sz" duration="90" easing="easeOutQuad"></m-attr-lerp>
   </m-cylinder>
 
@@ -26,42 +25,141 @@
     height="0.8"
     font-size="22"
     alignment="center"
-    content="Tap to recolour. Drag to slide across the floor."
+    content="Tap to recolour. Drag to slide. Let go while moving to throw."
   ></m-label>
 
   <script>
+    //<![CDATA[
     const palette = ["#d6302b", "#2b6bd6", "#e0b030", "#30a060", "#9040c0"];
+    const floorY = 0.5;
+    // Shapes stay on the 14 x 10 floor
+    const halfWidth = 6.5;
+    const halfDepth = 4.5;
+
+    function setScale(toy, scale) {
+      toy.setAttribute("sx", scale);
+      toy.setAttribute("sy", scale);
+      toy.setAttribute("sz", scale);
+    }
+
+    function moveTo(toy, position) {
+      toy.setAttribute("x", Math.max(-halfWidth, Math.min(halfWidth, position.x)).toFixed(3));
+      toy.setAttribute("y", Math.max(floorY, position.y).toFixed(3));
+      toy.setAttribute("z", Math.max(-halfDepth, Math.min(halfDepth, position.z)).toFixed(3));
+    }
+
     for (const toy of document.querySelectorAll(".toy")) {
-      let offset = null;
+      // The connection id of the player holding this shape, or null
+      let holder = null;
+      let throwTimer = null;
+
+      function stopThrow() {
+        if (throwTimer !== null) {
+          clearInterval(throwTimer);
+          throwTimer = null;
+        }
+      }
+
+      function release() {
+        holder = null;
+        setScale(toy, 1);
+        // Others may grab it again
+        toy.setAttribute("drag-enabled", "true");
+      }
+
+      // Slide (and, if lifted, fall and bounce) after being let go while moving
+      function throwToy(velocity) {
+        let vx = velocity.x;
+        let vy = velocity.y;
+        let vz = velocity.z;
+        const speed = Math.hypot(vx, vy, vz);
+        if (speed < 0.5) {
+          return;
+        }
+        const maxSpeed = 12;
+        if (speed > maxSpeed) {
+          vx *= maxSpeed / speed;
+          vy *= maxSpeed / speed;
+          vz *= maxSpeed / speed;
+        }
+        let x = parseFloat(toy.getAttribute("x"));
+        let y = parseFloat(toy.getAttribute("y"));
+        let z = parseFloat(toy.getAttribute("z") || "0");
+        const dt = 1 / 30;
+        // Start just after the drop position has reached the thrower's screen, so the hand-over is seamless
+        setTimeout(() => {
+          if (holder !== null) {
+            return;
+          }
+          stopThrow();
+          throwTimer = setInterval(() => {
+            vy -= 9.8 * dt;
+            x += vx * dt;
+            y += vy * dt;
+            z += vz * dt;
+            if (y <= floorY) {
+              y = floorY;
+              vy = Math.abs(vy) > 1 ? -vy * 0.4 : 0;
+              // Friction while touching the floor
+              vx *= 0.93;
+              vz *= 0.93;
+            }
+            // Bounce off the edges of the floor
+            if (Math.abs(x) > halfWidth) {
+              x = Math.sign(x) * halfWidth;
+              vx = -vx * 0.5;
+            }
+            if (Math.abs(z) > halfDepth) {
+              z = Math.sign(z) * halfDepth;
+              vz = -vz * 0.5;
+            }
+            moveTo(toy, { x, y, z });
+            if (y === floorY && vy === 0 && Math.hypot(vx, vz) < 0.05) {
+              stopThrow();
+            }
+          }, dt * 1000);
+        }, 120);
+      }
+
       toy.addEventListener("click", () => {
         const next = (palette.indexOf(toy.getAttribute("color")) + 1) % palette.length;
         toy.setAttribute("color", palette[next]);
       });
+
       toy.addEventListener("dragstart", (event) => {
-        const p = event.detail.documentPosition;
-        offset = {
-          x: parseFloat(toy.getAttribute("x")) - p.x,
-          y: parseFloat(toy.getAttribute("y")) - p.y,
-          z: parseFloat(toy.getAttribute("z") || "0") - p.z,
-        };
-        toy.setAttribute("sx", "1.15");
-        toy.setAttribute("sy", "1.15");
-        toy.setAttribute("sz", "1.15");
+        if (holder !== null && holder !== event.detail.connectionId) {
+          // Someone else is already holding it
+          return;
+        }
+        holder = event.detail.connectionId;
+        stopThrow();
+        setScale(toy, 1.15);
+        // Nobody else can grab it while it is held
+        toy.setAttribute("drag-enabled", "false");
       });
+
       toy.addEventListener("drag", (event) => {
-        if (!offset) return;
-        const p = event.detail.documentPosition;
-        toy.setAttribute("x", (p.x + offset.x).toFixed(3));
-        // Shapes never sink below the floor
-        toy.setAttribute("y", Math.max(0.5, p.y + offset.y).toFixed(3));
-        toy.setAttribute("z", (p.z + offset.z).toFixed(3));
+        if (event.detail.connectionId === holder) {
+          moveTo(toy, event.detail.elementPosition);
+        }
       });
+
       toy.addEventListener("dragend", (event) => {
-        offset = null;
-        toy.setAttribute("sx", "1");
-        toy.setAttribute("sy", "1");
-        toy.setAttribute("sz", "1");
+        if (event.detail.connectionId !== holder) {
+          return;
+        }
+        moveTo(toy, event.detail.elementPosition);
+        release();
+        throwToy(event.detail.velocity);
+      });
+
+      // If the holder leaves while holding it, let others grab it again
+      window.addEventListener("disconnected", (event) => {
+        if (event.detail.connectionId === holder) {
+          release();
+        }
       });
     }
+    //]]>
   </script>
 </m-group>
