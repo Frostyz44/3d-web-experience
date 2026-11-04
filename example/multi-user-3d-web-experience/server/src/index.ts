@@ -98,11 +98,8 @@ const networked3dWebExperienceServer = new Networked3dWebExperienceServer({
         position: { x: 18, y: 0.03, z: -37 },
       },
     },
-    environmentConfiguration: {
-      fog: {
-        fogFar: 0,
-      },
-    },
+    postProcessingEnabled: true,
+    environmentConfiguration: {},
     avatarConfiguration: {
       allowCustomAvatars: true,
       availableAvatars: defaultAvatars.map((desc, i) => ({
