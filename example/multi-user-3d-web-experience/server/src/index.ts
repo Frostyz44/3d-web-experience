@@ -68,7 +68,7 @@ const networked3dWebExperienceServer = new Networked3dWebExperienceServer({
         url: `ws:///mml-documents/fork-demos-sign.html`,
         position: { x: 0, y: 0, z: -10 },
       },
-      // Requires the MML fork (see scripts/use-mml-fork.mjs): drag-enabled shapes that every player can move
+      // Requires the MML fork (see scripts/use-mml-fork.mjs): drag-enabled shapes on mml-physics that every player can move, throw and push
       dragPlayground: {
         url: `ws:///mml-documents/drag-playground.html`,
         position: { x: -9, y: 0.01, z: -18 },
@@ -87,6 +87,11 @@ const networked3dWebExperienceServer = new Networked3dWebExperienceServer({
       physics: {
         url: `ws:///mml-documents/physics.html`,
         position: { x: -30, y: 0.03, z: -42 },
+      },
+      // Requires the MML fork: video on any surface, transparency and 3D text (m-text)
+      visuals: {
+        url: `ws:///mml-documents/visuals.html`,
+        position: { x: 28, y: 0.03, z: -42 },
       },
     },
     environmentConfiguration: {
