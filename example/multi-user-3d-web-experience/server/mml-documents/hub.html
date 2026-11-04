@@ -2,7 +2,7 @@
   <!--
     Spawn hub for the MML fork world (github.com/Frostyz44/mml-test). Placed at the world origin, so the coordinates
     here are world coordinates. Players spawn at (0, 0, 0) facing the plaza (towards negative z).
-    Areas: drag playground (-9, -18), materials (9, -18), particles (0, -42), physics (-30, -42), visuals (28, -42).
+    Areas: drag playground (-9, -18), materials (9, -18), particles (0, -33), physics (-22, -38), visuals (18, -37).
     The original MML example is behind the spawn point (positive z).
   -->
 
@@ -91,15 +91,19 @@
 
   <!-- ===== Paths: dark strips with glowing edges, each a group at the path's centre, turned along it ===== -->
   <!-- Plaza to particles -->
-  <m-group x="0" z="-19.6">
-    <m-plane rx="-90" y="0.015" width="1.8" height="15.2" color="#2a2f38" cast-shadows="false"><m-material roughness="0.9"></m-material></m-plane>
-    <m-plane rx="-90" x="-0.92" y="0.02" width="0.08" height="15.2" color="#0b1a22" cast-shadows="false"><m-material emissive="#2ad4ff" emissive-intensity="2"></m-material></m-plane>
-    <m-plane rx="-90" x="0.92" y="0.02" width="0.08" height="15.2" color="#0b1a22" cast-shadows="false"><m-material emissive="#2ad4ff" emissive-intensity="2"></m-material></m-plane>
+  <m-group x="0" z="-20.75">
+    <m-plane rx="-90" y="0.015" width="1.8" height="17.9" color="#2a2f38" cast-shadows="false"><m-material roughness="0.9"></m-material></m-plane>
+    <m-plane rx="-90" x="-0.92" y="0.02" width="0.08" height="17.9" color="#0b1a22" cast-shadows="false"><m-material emissive="#2ad4ff" emissive-intensity="2"></m-material></m-plane>
+    <m-plane rx="-90" x="0.92" y="0.02" width="0.08" height="17.9" color="#0b1a22" cast-shadows="false"><m-material emissive="#2ad4ff" emissive-intensity="2"></m-material></m-plane>
     <!-- Lamps along the way -->
     <m-group x="-1.4" z="-3.5"><m-cylinder radius="0.06" height="1.6" y="0.8" color="#202428"></m-cylinder><m-sphere radius="0.18" y="1.7" color="#fff0c0" cast-shadows="false"><m-material emissive="#ffd27a" emissive-intensity="3"></m-material></m-sphere></m-group>
     <m-group x="1.4" z="-3.5"><m-cylinder radius="0.06" height="1.6" y="0.8" color="#202428"></m-cylinder><m-sphere radius="0.18" y="1.7" color="#fff0c0" cast-shadows="false"><m-material emissive="#ffd27a" emissive-intensity="3"></m-material></m-sphere></m-group>
     <m-group x="-1.4" z="3.5"><m-cylinder radius="0.06" height="1.6" y="0.8" color="#202428"></m-cylinder><m-sphere radius="0.18" y="1.7" color="#fff0c0" cast-shadows="false"><m-material emissive="#ffd27a" emissive-intensity="3"></m-material></m-sphere></m-group>
     <m-group x="1.4" z="3.5"><m-cylinder radius="0.06" height="1.6" y="0.8" color="#202428"></m-cylinder><m-sphere radius="0.18" y="1.7" color="#fff0c0" cast-shadows="false"><m-material emissive="#ffd27a" emissive-intensity="3"></m-material></m-sphere></m-group>
+    <m-group x="-1.4" z="-7.5"><m-cylinder radius="0.06" height="1.6" y="0.8" color="#202428"></m-cylinder><m-sphere radius="0.18" y="1.7" color="#fff0c0" cast-shadows="false"><m-material emissive="#ffd27a" emissive-intensity="3"></m-material></m-sphere></m-group>
+    <m-group x="1.4" z="-7.5"><m-cylinder radius="0.06" height="1.6" y="0.8" color="#202428"></m-cylinder><m-sphere radius="0.18" y="1.7" color="#fff0c0" cast-shadows="false"><m-material emissive="#ffd27a" emissive-intensity="3"></m-material></m-sphere></m-group>
+    <m-group x="-1.4" z="7.5"><m-cylinder radius="0.06" height="1.6" y="0.8" color="#202428"></m-cylinder><m-sphere radius="0.18" y="1.7" color="#fff0c0" cast-shadows="false"><m-material emissive="#ffd27a" emissive-intensity="3"></m-material></m-sphere></m-group>
+    <m-group x="1.4" z="7.5"><m-cylinder radius="0.06" height="1.6" y="0.8" color="#202428"></m-cylinder><m-sphere radius="0.18" y="1.7" color="#fff0c0" cast-shadows="false"><m-material emissive="#ffd27a" emissive-intensity="3"></m-material></m-sphere></m-group>
   </m-group>
   <!-- Plaza to drag playground -->
   <m-group x="-6.58" z="-11.39" ry="56.3">
@@ -114,15 +118,15 @@
     <m-plane rx="-90" x="0.92" y="0.02" width="0.08" height="7.6" color="#0b1a22" cast-shadows="false"><m-material emissive="#ff6ad5" emissive-intensity="2"></m-material></m-plane>
   </m-group>
   <!-- Particles to physics (west) and to visuals (east) -->
-  <m-group x="-16.5" z="-42" ry="90">
+  <m-group x="-8.5" z="-34" ry="90">
     <m-plane rx="-90" y="0.015" width="1.8" height="3.6" color="#2a2f38" cast-shadows="false"><m-material roughness="0.9"></m-material></m-plane>
     <m-plane rx="-90" x="-0.92" y="0.02" width="0.08" height="3.6" color="#0b1a22" cast-shadows="false"><m-material emissive="#2ad4ff" emissive-intensity="2"></m-material></m-plane>
     <m-plane rx="-90" x="0.92" y="0.02" width="0.08" height="3.6" color="#0b1a22" cast-shadows="false"><m-material emissive="#2ad4ff" emissive-intensity="2"></m-material></m-plane>
   </m-group>
-  <m-group x="17.5" z="-42" ry="90">
-    <m-plane rx="-90" y="0.015" width="1.8" height="5.6" color="#2a2f38" cast-shadows="false"><m-material roughness="0.9"></m-material></m-plane>
-    <m-plane rx="-90" x="-0.92" y="0.02" width="0.08" height="5.6" color="#0b1a22" cast-shadows="false"><m-material emissive="#2ad4ff" emissive-intensity="2"></m-material></m-plane>
-    <m-plane rx="-90" x="0.92" y="0.02" width="0.08" height="5.6" color="#0b1a22" cast-shadows="false"><m-material emissive="#2ad4ff" emissive-intensity="2"></m-material></m-plane>
+  <m-group x="8.5" z="-34" ry="90">
+    <m-plane rx="-90" y="0.015" width="1.8" height="3.6" color="#2a2f38" cast-shadows="false"><m-material roughness="0.9"></m-material></m-plane>
+    <m-plane rx="-90" x="-0.92" y="0.02" width="0.08" height="3.6" color="#0b1a22" cast-shadows="false"><m-material emissive="#2ad4ff" emissive-intensity="2"></m-material></m-plane>
+    <m-plane rx="-90" x="0.92" y="0.02" width="0.08" height="3.6" color="#0b1a22" cast-shadows="false"><m-material emissive="#2ad4ff" emissive-intensity="2"></m-material></m-plane>
   </m-group>
 
   <script>

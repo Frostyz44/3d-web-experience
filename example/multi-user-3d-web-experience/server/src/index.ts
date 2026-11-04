@@ -85,17 +85,17 @@ const networked3dWebExperienceServer = new Networked3dWebExperienceServer({
       // Requires the MML fork: m-particles (campfire, sparks fountain, confetti cannon, snow)
       particles: {
         url: `ws:///mml-documents/particles.html`,
-        position: { x: 0, y: 0.02, z: -42 },
+        position: { x: 0, y: 0.02, z: -33 },
       },
       // Requires the MML fork: mml-physics runs in the document on the server (ramp, stacks, throwable crates)
       physics: {
         url: `ws:///mml-documents/physics.html`,
-        position: { x: -30, y: 0.03, z: -42 },
+        position: { x: -22, y: 0.03, z: -38 },
       },
       // Requires the MML fork: video on any surface, transparency and 3D text (m-text)
       visuals: {
         url: `ws:///mml-documents/visuals.html`,
-        position: { x: 28, y: 0.03, z: -42 },
+        position: { x: 18, y: 0.03, z: -37 },
       },
     },
     environmentConfiguration: {
