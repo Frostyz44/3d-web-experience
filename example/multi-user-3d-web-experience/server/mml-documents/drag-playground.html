@@ -52,6 +52,27 @@
       // The connection id of the player holding this shape, or null
       let holder = null;
       let throwTimer = null;
+      // Fallback for clients without elementPosition: offset between the shape and the grabbed point
+      let grabOffset = { x: 0, y: 0, z: 0 };
+      // Frees the shape if the holder stops sending drag events (for example after a crash)
+      let holderTimeout = null;
+
+      function targetOf(detail) {
+        if (detail.elementPosition) {
+          return detail.elementPosition;
+        }
+        const p = detail.documentPosition;
+        return { x: p.x + grabOffset.x, y: p.y + grabOffset.y, z: p.z + grabOffset.z };
+      }
+
+      function keepHolderAlive() {
+        clearTimeout(holderTimeout);
+        holderTimeout = setTimeout(() => {
+          if (holder !== null) {
+            release();
+          }
+        }, 5000);
+      }
 
       function stopThrow() {
         if (throwTimer !== null) {
@@ -62,6 +83,7 @@
 
       function release() {
         holder = null;
+        clearTimeout(holderTimeout);
         setScale(toy, 1);
         // Others may grab it again
         toy.setAttribute("drag-enabled", "true");
@@ -133,6 +155,13 @@
         }
         holder = event.detail.connectionId;
         stopThrow();
+        keepHolderAlive();
+        const p = event.detail.documentPosition;
+        grabOffset = {
+          x: parseFloat(toy.getAttribute("x") || "0") - p.x,
+          y: parseFloat(toy.getAttribute("y") || "0") - p.y,
+          z: parseFloat(toy.getAttribute("z") || "0") - p.z,
+        };
         setScale(toy, 1.15);
         // Nobody else can grab it while it is held
         toy.setAttribute("drag-enabled", "false");
@@ -140,7 +169,8 @@
 
       toy.addEventListener("drag", (event) => {
         if (event.detail.connectionId === holder) {
-          moveTo(toy, event.detail.elementPosition);
+          keepHolderAlive();
+          moveTo(toy, targetOf(event.detail));
         }
       });
 
@@ -148,9 +178,12 @@
         if (event.detail.connectionId !== holder) {
           return;
         }
-        moveTo(toy, event.detail.elementPosition);
+        // Release first, so the shape is never left locked
         release();
-        throwToy(event.detail.velocity);
+        moveTo(toy, targetOf(event.detail));
+        if (event.detail.velocity) {
+          throwToy(event.detail.velocity);
+        }
       });
 
       // If the holder leaves while holding it, let others grab it again
