@@ -4,7 +4,7 @@
   "packageManager": "npm@11.8.0",
   "type": "module",
   "engines": {
-    "node": "26.x"
+    "node": ">=22"
   },
   "scripts": {
     "start": "npm run start -w @example/multi-user-3d-web-experience-server",
