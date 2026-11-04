@@ -82,13 +82,14 @@
     <m-cube y="3.1" width="3.6" height="0.5" depth="0.3" color="#1d2330"><m-material metalness="0.6" roughness="0.4"></m-material></m-cube>
     <m-text content="Materials" y="3.1" z="0.17" font-size="0.3" depth="0.04" color="#ffb3ec"><m-material emissive="#e040b0" emissive-intensity="1.2"></m-material></m-text>
   </m-group>
-  <!-- Behind the particles: the cinema (shared YouTube screen) -->
-  <m-group x="0" z="-40.6">
-    <m-cube x="-1.5" y="1.5" width="0.25" height="3" depth="0.25" color="#202428"><m-material metalness="0.8" roughness="0.3" emissive="#ff4a4a" emissive-intensity="0.8"></m-material></m-cube>
-    <m-cube x="1.5" y="1.5" width="0.25" height="3" depth="0.25" color="#202428"><m-material metalness="0.8" roughness="0.3" emissive="#ff4a4a" emissive-intensity="0.8"></m-material></m-cube>
-    <m-cube y="3.1" width="3.6" height="0.5" depth="0.3" color="#1d2330"><m-material metalness="0.6" roughness="0.4"></m-material></m-cube>
-    <m-text content="Cinema" y="3.1" z="0.17" font-size="0.3" depth="0.04" color="#ff9a9a"><m-material emissive="#ff3030" emissive-intensity="1.2"></m-material></m-text>
-    <m-text content="a shared YouTube screen" y="2.55" z="0.1" font-size="0.14" depth="0.02" color="#ffffff"></m-text>
+  <!-- Behind the particles (past their title): the cinema with a shared YouTube screen. Taller, so its sign shows
+       above the particles title from the plaza. -->
+  <m-group x="0" z="-45">
+    <m-cube x="-1.5" y="2.2" width="0.25" height="4.4" depth="0.25" color="#202428"><m-material metalness="0.8" roughness="0.3" emissive="#ff4a4a" emissive-intensity="0.8"></m-material></m-cube>
+    <m-cube x="1.5" y="2.2" width="0.25" height="4.4" depth="0.25" color="#202428"><m-material metalness="0.8" roughness="0.3" emissive="#ff4a4a" emissive-intensity="0.8"></m-material></m-cube>
+    <m-cube y="4.5" width="3.6" height="0.5" depth="0.3" color="#1d2330"><m-material metalness="0.6" roughness="0.4"></m-material></m-cube>
+    <m-text content="Cinema" y="4.5" z="0.17" font-size="0.3" depth="0.04" color="#ff9a9a"><m-material emissive="#ff3030" emissive-intensity="1.2"></m-material></m-text>
+    <m-text content="a shared YouTube screen" y="3.95" z="0.1" font-size="0.14" depth="0.02" color="#ffffff"></m-text>
   </m-group>
   <!-- Behind the spawn point: the original example, facing players who turn around -->
   <m-group x="0" z="3.2" ry="180">
@@ -139,16 +140,16 @@
   </m-group>
 
   <!-- Particles to the cinema -->
-  <m-group x="0" z="-49.9">
-    <m-plane rx="-90" y="0.015" width="1.8" height="18.6" color="#2a2f38" cast-shadows="false"><m-material roughness="0.9"></m-material></m-plane>
-    <m-plane rx="-90" x="-0.92" y="0.02" width="0.08" height="18.6" color="#0b1a22" cast-shadows="false"><m-material emissive="#ff4a4a" emissive-intensity="2"></m-material></m-plane>
-    <m-plane rx="-90" x="0.92" y="0.02" width="0.08" height="18.6" color="#0b1a22" cast-shadows="false"><m-material emissive="#ff4a4a" emissive-intensity="2"></m-material></m-plane>
-    <m-group x="-1.4" z="-6"><m-cylinder radius="0.06" height="1.6" y="0.8" color="#202428"></m-cylinder><m-sphere radius="0.18" y="1.7" color="#fff0c0" cast-shadows="false"><m-material emissive="#ffd27a" emissive-intensity="3"></m-material></m-sphere></m-group>
-    <m-group x="1.4" z="-6"><m-cylinder radius="0.06" height="1.6" y="0.8" color="#202428"></m-cylinder><m-sphere radius="0.18" y="1.7" color="#fff0c0" cast-shadows="false"><m-material emissive="#ffd27a" emissive-intensity="3"></m-material></m-sphere></m-group>
+  <m-group x="0" z="-52.1">
+    <m-plane rx="-90" y="0.015" width="1.8" height="14.2" color="#2a2f38" cast-shadows="false"><m-material roughness="0.9"></m-material></m-plane>
+    <m-plane rx="-90" x="-0.92" y="0.02" width="0.08" height="14.2" color="#0b1a22" cast-shadows="false"><m-material emissive="#ff4a4a" emissive-intensity="2"></m-material></m-plane>
+    <m-plane rx="-90" x="0.92" y="0.02" width="0.08" height="14.2" color="#0b1a22" cast-shadows="false"><m-material emissive="#ff4a4a" emissive-intensity="2"></m-material></m-plane>
+    <m-group x="-1.4" z="-5"><m-cylinder radius="0.06" height="1.6" y="0.8" color="#202428"></m-cylinder><m-sphere radius="0.18" y="1.7" color="#fff0c0" cast-shadows="false"><m-material emissive="#ffd27a" emissive-intensity="3"></m-material></m-sphere></m-group>
+    <m-group x="1.4" z="-5"><m-cylinder radius="0.06" height="1.6" y="0.8" color="#202428"></m-cylinder><m-sphere radius="0.18" y="1.7" color="#fff0c0" cast-shadows="false"><m-material emissive="#ffd27a" emissive-intensity="3"></m-material></m-sphere></m-group>
     <m-group x="-1.4" z="0"><m-cylinder radius="0.06" height="1.6" y="0.8" color="#202428"></m-cylinder><m-sphere radius="0.18" y="1.7" color="#fff0c0" cast-shadows="false"><m-material emissive="#ffd27a" emissive-intensity="3"></m-material></m-sphere></m-group>
     <m-group x="1.4" z="0"><m-cylinder radius="0.06" height="1.6" y="0.8" color="#202428"></m-cylinder><m-sphere radius="0.18" y="1.7" color="#fff0c0" cast-shadows="false"><m-material emissive="#ffd27a" emissive-intensity="3"></m-material></m-sphere></m-group>
-    <m-group x="-1.4" z="6"><m-cylinder radius="0.06" height="1.6" y="0.8" color="#202428"></m-cylinder><m-sphere radius="0.18" y="1.7" color="#fff0c0" cast-shadows="false"><m-material emissive="#ffd27a" emissive-intensity="3"></m-material></m-sphere></m-group>
-    <m-group x="1.4" z="6"><m-cylinder radius="0.06" height="1.6" y="0.8" color="#202428"></m-cylinder><m-sphere radius="0.18" y="1.7" color="#fff0c0" cast-shadows="false"><m-material emissive="#ffd27a" emissive-intensity="3"></m-material></m-sphere></m-group>
+    <m-group x="-1.4" z="5"><m-cylinder radius="0.06" height="1.6" y="0.8" color="#202428"></m-cylinder><m-sphere radius="0.18" y="1.7" color="#fff0c0" cast-shadows="false"><m-material emissive="#ffd27a" emissive-intensity="3"></m-material></m-sphere></m-group>
+    <m-group x="1.4" z="5"><m-cylinder radius="0.06" height="1.6" y="0.8" color="#202428"></m-cylinder><m-sphere radius="0.18" y="1.7" color="#fff0c0" cast-shadows="false"><m-material emissive="#ffd27a" emissive-intensity="3"></m-material></m-sphere></m-group>
   </m-group>
 
   <script>
