@@ -1,0 +1,61 @@
+<!--
+  m-material demo.
+
+  Back row:  polished to rough gold metal (metalness 1, roughness 0 to 1).
+  Middle row: the same roughness steps on red plastic (metalness 0).
+  Front:     a plain cube with no m-material for comparison, a textured brick cube
+             (colour, normal and roughness maps), and a glowing cube whose emissive
+             intensity pulses with m-attr-anim.
+  Floor:     the brick textures tiled 6 x 3 with repeat-x and repeat-y.
+
+  Serve it with the MML CLI "serve" command from the project folder,
+  passing demo/assets as the assets directory.
+-->
+<m-group>
+<m-light type="point" intensity="900" x="4" y="7" z="5"></m-light>
+<m-light type="point" intensity="500" x="-5" y="5" z="3"></m-light>
+
+<m-plane rx="-90" width="12" height="6" z="-0.5">
+  <m-material
+    map="/assets/textures/bricks_color.png"
+    normal-map="/assets/textures/bricks_normal.png"
+    roughness-map="/assets/textures/bricks_roughness.png"
+    repeat-x="6"
+    repeat-y="3"
+  ></m-material>
+</m-plane>
+
+<m-group z="-2" y="2.6">
+  <m-sphere x="-3" radius="0.5" color="#ffc94a"><m-material metalness="1" roughness="0"></m-material></m-sphere>
+  <m-sphere x="-1.5" radius="0.5" color="#ffc94a"><m-material metalness="1" roughness="0.25"></m-material></m-sphere>
+  <m-sphere x="0" radius="0.5" color="#ffc94a"><m-material metalness="1" roughness="0.5"></m-material></m-sphere>
+  <m-sphere x="1.5" radius="0.5" color="#ffc94a"><m-material metalness="1" roughness="0.75"></m-material></m-sphere>
+  <m-sphere x="3" radius="0.5" color="#ffc94a"><m-material metalness="1" roughness="1"></m-material></m-sphere>
+</m-group>
+
+<m-group z="-1" y="1.3">
+  <m-sphere x="-3" radius="0.5" color="#d6302b"><m-material roughness="0"></m-material></m-sphere>
+  <m-sphere x="-1.5" radius="0.5" color="#d6302b"><m-material roughness="0.25"></m-material></m-sphere>
+  <m-sphere x="0" radius="0.5" color="#d6302b"><m-material roughness="0.5"></m-material></m-sphere>
+  <m-sphere x="1.5" radius="0.5" color="#d6302b"><m-material roughness="0.75"></m-material></m-sphere>
+  <m-sphere x="3" radius="0.5" color="#d6302b"><m-material roughness="1"></m-material></m-sphere>
+</m-group>
+
+<m-group z="1.2" y="0.5">
+  <m-cube x="-2.5" ry="30" color="#d6302b"></m-cube>
+
+  <m-cube x="0" ry="30">
+    <m-material
+      map="/assets/textures/bricks_color.png"
+      normal-map="/assets/textures/bricks_normal.png"
+      roughness-map="/assets/textures/bricks_roughness.png"
+    ></m-material>
+  </m-cube>
+
+  <m-cube x="2.5" ry="30" color="#202428">
+    <m-material roughness="0.4" metalness="0.6" emissive-map="/assets/textures/grid_emissive.png" emissive-intensity="2">
+      <m-attr-anim attr="emissive-intensity" start="0.6" end="3" duration="1500" ping-pong="true"></m-attr-anim>
+    </m-material>
+  </m-cube>
+</m-group>
+</m-group>

@@ -142,6 +142,12 @@ export class ThreeJSWorldRenderer implements IRenderer {
 
     this.scene.add(this.mmlCompositionScene.group);
 
+    // Dragging an MML element must not also orbit the camera
+    this.coreCameraManager.setPointerClaimCheck(
+      (pointerId) => this.mmlCompositionScene.isPointerClaimed(pointerId),
+      () => this.mmlCompositionScene.isDraggingElement(),
+    );
+
     // Initialize MML manager
     this.mmlManager = new ThreeJSMMLManager(
       this.mmlCompositionScene,

@@ -73,6 +73,10 @@ export class CameraManager {
   private flyCameraPitch: number = Math.PI * 0.4;
   private flyCameraDistance: number = 15.0;
   private flyCameraMouseDown: boolean = false;
+
+  // Set by an interaction system (such as MML element dragging) that can take pointers away from the camera.
+  private isPointerClaimed: ((pointerId: number) => boolean) | null = null;
+  private isDraggingElement: (() => boolean) | null = null;
   private flyCameraIsPanning: boolean = false;
   private flyCameraLastMouseX: number = 0;
   private flyCameraLastMouseY: number = 0;
@@ -124,6 +128,19 @@ export class CameraManager {
     };
 
     this.createEventHandlers();
+  }
+
+  /**
+   * Lets an interaction system take pointers away from the camera controls. While `isPointerClaimed` returns
+   * true for a pointer (for example while an MML element is being dragged with it), moving that pointer does not
+   * orbit, pan or zoom the camera. `isDraggingElement` is used for the fly camera, which uses mouse events.
+   */
+  public setPointerClaimCheck(
+    isPointerClaimed: ((pointerId: number) => boolean) | null,
+    isDraggingElement: (() => boolean) | null = null,
+  ): void {
+    this.isPointerClaimed = isPointerClaimed;
+    this.isDraggingElement = isDraggingElement;
   }
 
   private createEventHandlers(): void {
@@ -192,7 +209,7 @@ export class CameraManager {
   }
 
   private onFlyCameraMouseMove(event: MouseEvent): void {
-    if (!this.flyCameraMouseDown || getTweakpaneActive()) {
+    if (!this.flyCameraMouseDown || getTweakpaneActive() || this.isDraggingElement?.()) {
       return;
     }
 
@@ -315,6 +332,14 @@ export class CameraManager {
     }
 
     const existingPointer = this.activePointers.get(event.pointerId);
+    if (existingPointer && this.isPointerClaimed?.(event.pointerId)) {
+      // The pointer is dragging an MML element: track it without moving the camera, so the camera does not jump
+      // when the drag ends.
+      existingPointer.x = event.clientX;
+      existingPointer.y = event.clientY;
+      document.body.style.cursor = "grabbing";
+      return;
+    }
     if (existingPointer) {
       const previous = this.getAveragePointerPositionAndSpread();
 

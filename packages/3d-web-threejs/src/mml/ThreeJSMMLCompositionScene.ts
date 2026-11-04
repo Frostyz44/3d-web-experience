@@ -176,6 +176,21 @@ export class ThreeJSMMLCompositionScene {
     );
   }
 
+  /**
+   * Whether the given pointer is being used to interact with an MML element (for example dragging an element with
+   * `drag-enabled`), in which case camera controls should ignore it.
+   */
+  isPointerClaimed(pointerId: number): boolean {
+    return this.clickTrigger.isPointerClaimed(pointerId);
+  }
+
+  /**
+   * Whether an MML element drag is in progress.
+   */
+  isDraggingElement(): boolean {
+    return this.clickTrigger.isDragging();
+  }
+
   onChatMessage(message: string) {
     for (const chatProbe of this.chatProbes) {
       chatProbe.trigger(message);

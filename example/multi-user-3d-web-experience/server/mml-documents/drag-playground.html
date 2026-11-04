@@ -1,0 +1,58 @@
+<m-group>
+  <!--
+    Touch and drag demo. Tap a shape to change its colour. Press and drag a shape to move it.
+    Drag the ground or the sky to move the camera. Two fingers pinch to zoom.
+  -->
+  <m-light type="point" intensity="900" x="4" y="8" z="6"></m-light>
+  <m-plane rx="-90" width="14" height="10" color="#7a9a7a"></m-plane>
+
+  <m-cube class="toy" x="-2.5" y="0.5" color="#d6302b" drag-enabled="true" drag-plane="ground"></m-cube>
+  <m-sphere class="toy" x="0" y="0.5" radius="0.5" color="#2b6bd6" drag-enabled="true" drag-plane="ground"></m-sphere>
+  <m-cylinder class="toy" x="2.5" y="0.5" color="#e0b030" drag-enabled="true" drag-plane="ground"></m-cylinder>
+
+  <m-label
+    y="2.6"
+    z="-2"
+    width="6"
+    height="0.8"
+    font-size="22"
+    alignment="center"
+    content="Tap to recolour. Drag to slide. Hold Shift while dragging to lift."
+  ></m-label>
+
+  <script>
+    const palette = ["#d6302b", "#2b6bd6", "#e0b030", "#30a060", "#9040c0"];
+    for (const toy of document.querySelectorAll(".toy")) {
+      let offset = null;
+      toy.addEventListener("click", () => {
+        const next = (palette.indexOf(toy.getAttribute("color")) + 1) % palette.length;
+        toy.setAttribute("color", palette[next]);
+      });
+      toy.addEventListener("dragstart", (event) => {
+        const p = event.detail.documentPosition;
+        offset = {
+          x: parseFloat(toy.getAttribute("x")) - p.x,
+          y: parseFloat(toy.getAttribute("y")) - p.y,
+          z: parseFloat(toy.getAttribute("z") || "0") - p.z,
+        };
+        toy.setAttribute("sx", "1.15");
+        toy.setAttribute("sy", "1.15");
+        toy.setAttribute("sz", "1.15");
+      });
+      toy.addEventListener("drag", (event) => {
+        if (!offset) return;
+        const p = event.detail.documentPosition;
+        toy.setAttribute("x", (p.x + offset.x).toFixed(3));
+        // Shapes never sink below the floor
+        toy.setAttribute("y", Math.max(0.5, p.y + offset.y).toFixed(3));
+        toy.setAttribute("z", (p.z + offset.z).toFixed(3));
+      });
+      toy.addEventListener("dragend", (event) => {
+        offset = null;
+        toy.setAttribute("sx", "1");
+        toy.setAttribute("sy", "1");
+        toy.setAttribute("sz", "1");
+      });
+    }
+  </script>
+</m-group>

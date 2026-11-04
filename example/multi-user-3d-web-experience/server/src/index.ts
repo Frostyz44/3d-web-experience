@@ -61,7 +61,19 @@ const networked3dWebExperienceServer = new Networked3dWebExperienceServer({
     assetsUrl: "/assets/",
   },
   worldConfig: {
-    mmlDocuments: { example: { url: `ws:///mml-documents/example-mml.html` } },
+    mmlDocuments: {
+      example: { url: `ws:///mml-documents/example-mml.html` },
+      // Requires the MML fork (see scripts/use-mml-fork.mjs): drag-enabled shapes that every player can move
+      dragPlayground: {
+        url: `ws:///mml-documents/drag-playground.html`,
+        position: { x: -14, y: 0.01, z: 0 },
+      },
+      // Requires the MML fork: m-material surfaces and textures
+      materialShowcase: {
+        url: `ws:///mml-documents/material-showcase.html`,
+        position: { x: -14, y: 0.01, z: 14 },
+      },
+    },
     environmentConfiguration: {
       fog: {
         fogFar: 0,

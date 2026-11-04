@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.28.0",
   "engines": {
-    "node": "24.x"
+    "node": "26.x"
   },
   "main": "./src/index.js",
   "type": "module",
