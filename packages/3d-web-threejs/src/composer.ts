@@ -43,6 +43,7 @@ import {
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 
 import { ThreeJSCameraManager } from "./camera/ThreeJSCameraManager";
+import { HOLE_PUNCH_ATTRIBUTE, HoleAlphaApplier } from "./post-effects/HolePunchCompositor";
 import { PostProcessingManager } from "./post-effects/PostProcessingManager";
 import { ProceduralSky } from "./sky/ProceduralSky";
 import { LocalShadowBudget } from "./sun/LocalShadowBudget";
@@ -161,6 +162,10 @@ export class Composer {
 
   private postProcessingEnabled: boolean | undefined;
 
+  // DOM content (such as MML m-youtube players) shown through holes in the canvas, see HolePunchCompositor
+  private domOverlayContainer: HTMLElement | null = null;
+  private readonly holeAlphaApplier = new HoleAlphaApplier();
+
   // quality
   private qualitySetting: QualityTierSetting = "auto";
   private qualityTier: QualityTier = "high";
@@ -205,7 +210,11 @@ export class Composer {
     this.renderer = new WebGLRenderer({
       powerPreference: "high-performance",
       antialias: this.quality.antialias,
+      // The canvas is transparent so DOM content behind it (MML m-youtube) can show through holes. Everything else is
+      // kept opaque: the clear alpha is 1 and render() forces alpha 1 wherever there is no hole.
+      alpha: true,
     });
+    this.renderer.setClearColor(0x000000, 1);
     this.renderer.outputColorSpace = SRGBColorSpace;
     this.renderer.info.autoReset = false;
     this.renderer.setSize(this.width, this.height);
@@ -501,11 +510,19 @@ export class Composer {
     });
   }
 
+  /**
+   * Sets the element behind the canvas that holds DOM content shown through holes in the canvas (for MML m-youtube).
+   */
+  public setDOMOverlayContainer(container: HTMLElement | null) {
+    this.domOverlayContainer = container;
+  }
+
   public dispose() {
     window.removeEventListener("resize", this.resizeListener);
     this.sky?.dispose();
     this.renderer.dispose();
     this.postProcessingManager.dispose();
+    this.holeAlphaApplier.dispose();
   }
 
   public fitContainer() {
@@ -542,10 +559,20 @@ export class Composer {
     this.localShadowBudget.update(this.currentCamera.position, deltaTimeSeconds);
 
     this.renderer.info.reset();
+    const holeShown = this.domOverlayContainer?.hasAttribute(HOLE_PUNCH_ATTRIBUTE) ?? false;
     if (this.postProcessingManager.isGloballyEnabled) {
+      this.postProcessingManager.setHoleMaskEnabled(holeShown);
       this.postProcessingManager.render(deltaTimeSeconds);
+      const mask = holeShown ? this.postProcessingManager.getHoleMaskTexture() : null;
+      if (!holeShown || mask) {
+        // Put the scene's alpha (captured before the effects) back, or make the canvas opaque
+        this.holeAlphaApplier.apply(this.renderer, mask);
+      }
     } else {
       this.renderer.render(this.scene, this.threeJSCameraManager.getActiveCamera());
+      if (!holeShown) {
+        this.holeAlphaApplier.apply(this.renderer, null);
+      }
     }
     this.renderer.clearDepth();
     this.renderer.render(this.postPostScene, this.threeJSCameraManager.getActiveCamera());

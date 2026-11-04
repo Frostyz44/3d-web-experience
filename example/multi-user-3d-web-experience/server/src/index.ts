@@ -92,14 +92,25 @@ const networked3dWebExperienceServer = new Networked3dWebExperienceServer({
         url: `ws:///mml-documents/physics.html`,
         position: { x: -22, y: 0.03, z: -38 },
       },
+      // Requires the MML fork: a ball pit with 300 physics balls that players wade through and kick
+      ballPit: {
+        url: `ws:///mml-documents/ballpit.html`,
+        position: { x: -26, y: 0.02, z: -14 },
+      },
       // Requires the MML fork: video on any surface, transparency and 3D text (m-text)
       visuals: {
         url: `ws:///mml-documents/visuals.html`,
         position: { x: 18, y: 0.03, z: -37 },
       },
+      // Requires the MML fork: a cinema with a shared YouTube screen (m-youtube) and physics crates in front of it
+      cinema: {
+        url: `ws:///mml-documents/cinema.html`,
+        position: { x: 0, y: 0.04, z: -70 },
+      },
     },
     // Emissive bloom, ambient occlusion and tone mapping. Their cost follows environmentConfiguration.quality.
-    postProcessingEnabled: true,
+    // POST_PROCESSING=false turns them off.
+    postProcessingEnabled: process.env.POST_PROCESSING !== "false",
     environmentConfiguration: {
       // Late afternoon: warm low sun, long soft shadows, and glowing materials stand out.
       // Set cycleMinutes (e.g. 30) for a moving day and night cycle.

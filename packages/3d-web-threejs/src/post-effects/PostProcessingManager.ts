@@ -21,6 +21,7 @@ import {
   PerspectiveCamera,
   ReinhardToneMapping,
   Scene,
+  Texture,
   ToneMapping,
   Vector2,
   WebGLRenderer,
@@ -45,6 +46,7 @@ import { BrightnessContrastSaturation } from "./bright-contrast-sat";
 import { ColorGradeEffect } from "./ColorGradeEffect";
 import { BloomMode, EmissiveBloomEffect } from "./EmissiveBloomEffect";
 import { GaussGrainEffect } from "./gauss-grain";
+import { HoleMaskCapturePass } from "./HolePunchCompositor";
 import { N8SSAOPass } from "./n8-ssao/N8SSAOPass";
 
 export const PP_GLOBALLY_ENABLED = false;
@@ -159,6 +161,10 @@ export class PostProcessingManager {
   private bloomScale = 1;
 
   public resolution: Vector2;
+
+  // Captures the scene's alpha for hole-punched DOM content (see HolePunchCompositor)
+  private holeMaskPass: HoleMaskCapturePass | null = null;
+  private holeMaskEnabled = false;
 
   public readonly postProcessingGlobalValues: PostProcessingGlobalValues;
   public readonly bcsValues: BCSValues;
@@ -340,6 +346,40 @@ export class PostProcessingManager {
         state.passIndex = this.effectComposer.passes.length - 1;
       }
     }
+
+    // The mask is captured right after the scene render, before any effect changes the alpha.
+    if (this.holeMaskEnabled) {
+      if (!this.holeMaskPass) {
+        this.holeMaskPass = new HoleMaskCapturePass();
+      }
+      this.effectComposer.addPass(this.holeMaskPass, 1);
+      if (ssao?.enabled) {
+        ssao.passIndex = this.effectComposer.passes.indexOf(this.n8aopass);
+      }
+    }
+  }
+
+  /**
+   * Turns capturing the scene alpha for hole-punched DOM content on or off (only needed while a hole is shown).
+   */
+  public setHoleMaskEnabled(enabled: boolean) {
+    if (this.holeMaskEnabled === enabled) {
+      return;
+    }
+    this.holeMaskEnabled = enabled;
+    this.rebuildPipeline();
+  }
+
+  /** The captured scene alpha, or null when capturing is off. */
+  public getHoleMaskTexture(): Texture | null {
+    if (
+      this.holeMaskEnabled &&
+      this.holeMaskPass &&
+      this.effectComposer.passes.includes(this.holeMaskPass)
+    ) {
+      return this.holeMaskPass.maskTexture;
+    }
+    return null;
   }
 
   public enableEffect(name: string) {
@@ -591,6 +631,7 @@ export class PostProcessingManager {
 
   public dispose() {
     this.effectComposer.dispose();
+    this.holeMaskPass?.dispose();
     this.bloomEffect.dispose();
     this.colorGradeEffect.dispose();
     this.toneMappingEffect.dispose();
