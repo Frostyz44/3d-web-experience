@@ -10,6 +10,7 @@ export * from "./character/url-position";
 export * from "./character/types";
 export * from "./helpers/math-helpers";
 export * from "./rendering/IRenderer";
+export * from "./rendering/EnvironmentSettings";
 export { CharacterState, AnimationState } from "./character/CharacterState";
 export {
   InputOutput,
