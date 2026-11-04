@@ -182,38 +182,26 @@ MML document URLs accept the following schemes (pattern: `^(wss?://|https?://|/)
 
 ### `environment`
 
-Controls the visual environment: sky, lighting, fog, and post-processing.
+Controls the visual environment: sky, sun and shadows, time of day, lighting, fog, post-processing and
+rendering quality. Every field is optional. Colours are linear RGB with channels from 0 to 1.
 
 ```json
 {
   "environment": {
     "groundPlane": true,
-    "skybox": {
-      "hdrJpgUrl": "/assets/sky.hdr.jpg",
-      "intensity": 0.9,
-      "blurriness": 0,
-      "azimuthalAngle": 0,
-      "polarAngle": 0
-    },
-    "sun": {
-      "intensity": 2.1,
-      "polarAngle": -45,
-      "azimuthalAngle": 180
-    },
-    "envMap": {
-      "intensity": 0.6
-    },
-    "fog": {
-      "fogNear": 30,
-      "fogFar": 210,
-      "fogColor": { "r": 0.6, "g": 0.6, "b": 0.6 }
-    },
+    "sun": { "intensity": 2.6, "polarAngle": 50, "azimuthalAngle": 30 },
+    "sky": { "turbidity": 2.5, "rayleigh": 1.2, "exposure": 0.45 },
+    "timeOfDay": { "hour": 16.5, "cycleMinutes": 0 },
+    "envMap": { "intensity": 0.6 },
+    "fog": { "fogNear": 45, "fogFar": 230 },
+    "ambientLight": { "intensity": 0.6 },
+    "shadows": { "softness": 2.5 },
     "postProcessing": {
-      "bloomIntensity": 0.15
+      "bloom": { "mode": "emissive", "intensity": 1.8 },
+      "toneMapping": "aces",
+      "exposure": 1
     },
-    "ambientLight": {
-      "intensity": 0.17
-    }
+    "quality": { "tier": "auto" }
   }
 }
 ```
@@ -223,9 +211,11 @@ Controls the visual environment: sky, lighting, fog, and post-processing.
 **Type:** `boolean`
 **Default:** `true`
 
-Show a ground plane at y=0.
+Show a ground plane at y=0 (500 × 500 m, large enough that its edge sits inside the fog).
 
 #### `environment.skybox`
+
+An HDR skybox. When set it replaces the procedural sky (`environment.sky`) and lights the scene.
 
 | Field | Type | Default | Range | Description |
 |-------|------|---------|-------|-------------|
@@ -238,17 +228,52 @@ Show a ground plane at y=0.
 
 #### `environment.sun`
 
+The sun is a directional light with soft shadows. Its shadow area follows the player and is snapped to
+shadow-map texels, so shadows do not shimmer while moving.
+
 | Field | Type | Default | Range | Description |
 |-------|------|---------|-------|-------------|
-| `intensity` | `number` | `2.1` | 0–10 | Directional light intensity. |
-| `polarAngle` | `number` | `-45` | -360–360 | Vertical angle of the sun in degrees. |
-| `azimuthalAngle` | `number` | `180` | -360–360 | Horizontal angle of the sun in degrees. |
+| `intensity` | `number` | `2.6` | 0–10 | Directional light intensity. |
+| `polarAngle` | `number` | `50` | -360–360 | Angle from straight up in degrees (0 = overhead, 90 = horizon). Ignored when `timeOfDay` is set. |
+| `azimuthalAngle` | `number` | `30` | -360–360 | Horizontal angle of the sun in degrees. Ignored when `timeOfDay` is set. |
+| `color` | `{ r, g, b }` | `{ 1, 0.96, 0.9 }` | 0–1 per channel | Light colour. With `timeOfDay` it is warmed near the horizon. |
+
+#### `environment.sky`
+
+The procedural sky (Preetham model), used when no `skybox` is set. It also provides the environment map
+that lights and reflects on materials, and it fades into the fog colour at the horizon.
+
+| Field | Type | Default | Range | Description |
+|-------|------|---------|-------|-------------|
+| `turbidity` | `number` | `2.5` | 0–30 | Haze. Higher is whiter and hazier. |
+| `rayleigh` | `number` | `1.2` | 0–10 | Blue scattering. Higher is a deeper blue (and redder sunsets). |
+| `mieCoefficient` | `number` | `0.005` | 0–0.1 | Strength of the glow around the sun. |
+| `mieDirectionalG` | `number` | `0.8` | 0–0.999 | Size of the glow around the sun (higher is tighter). |
+| `exposure` | `number` | `0.45` | 0–10 | Sky brightness. |
+| `nightColor` | `{ r, g, b }` | `{ 0.012, 0.02, 0.05 }` | 0–1 per channel | Night sky colour (when the sun is below the horizon). |
+| `stars` | `number` | `1` | 0–10 | Star brightness at night. `0` disables stars. |
+| `horizonBlend` | `number` | `8` | 0–90 | Degrees above the horizon over which the sky fades into the fog colour. |
+
+#### `environment.timeOfDay`
+
+When set, the hour positions the sun (sunrise 6, noon 12, sunset 18) and adjusts the light colour, ambient
+light, sky, fog colour, exposure and bloom. At night a dim, cool moonlight keeps the world readable and
+glowing objects stand out more.
+
+| Field | Type | Default | Range | Description |
+|-------|------|---------|-------|-------------|
+| `hour` | `number` | — (required) | 0–24 | Time of day. |
+| `cycleMinutes` | `number` | `0` | 0+ | Real minutes per in-world day. `0` keeps the hour fixed. |
+| `azimuthalAngle` | `number` | `20` | -360–360 | Direction of the sun at noon (same convention as `sun.azimuthalAngle`). |
+| `maxElevation` | `number` | `55` | 5–89 | Sun elevation at noon in degrees. |
+
+For testing, the page URL parameter `?hour=21` overrides the hour (and stops the cycle).
 
 #### `environment.envMap`
 
 | Field | Type | Default | Range | Description |
 |-------|------|---------|-------|-------------|
-| `intensity` | `number` | `0.6` | 0–1 | Environment map reflection intensity on materials. |
+| `intensity` | `number` | `0.6` | 0–5 | Environment map lighting and reflection intensity on materials. |
 
 #### `environment.fog`
 
@@ -256,19 +281,66 @@ Show a ground plane at y=0.
 |-------|------|---------|-------|-------------|
 | `fogNear` | `number` | `30` | 0+ | Distance at which fog starts. |
 | `fogFar` | `number` | `210` | 0+ | Distance at which fog fully obscures. `0` disables fog. |
-| `fogColor` | `{ r, g, b }` | `{ 0.6, 0.6, 0.6 }` | 0–1 per channel | Color of the distance fog as linear RGB values. |
+| `fogColor` | `{ r, g, b }` | sky horizon | 0–1 per channel | Colour of the distance fog. When omitted with the procedural sky, the fog follows the sky's horizon colour (including time of day); with an HDR skybox it defaults to `{ 0.6, 0.6, 0.6 }`. |
 
 #### `environment.postProcessing`
 
+Applies when `postProcessingEnabled` is `true`.
+
 | Field | Type | Default | Range | Description |
 |-------|------|---------|-------|-------------|
-| `bloomIntensity` | `number` | `0.15` | 0–1 | Bloom post-processing intensity. |
+| `bloom.mode` | `string` | `"emissive"` | `emissive`, `luminance` | `emissive`: only emissive surfaces (`m-material` `emissive`, `emissive-map`, `emissive-intensity`) and additive particles (fire, sparks) glow, by how bright they are; lit white surfaces and the sky never bloom. `luminance`: anything brighter than `threshold` in the image glows. |
+| `bloom.intensity` | `number` | `1.8` | 0–10 | Glow strength. |
+| `bloom.threshold` | `number` | `0.05` (emissive) / `1.2` (luminance) | 0–100 | Linear brightness below which nothing glows. |
+| `bloom.smoothing` | `number` | `0.3` | 0–10 | Softness of the threshold. |
+| `bloom.radius` | `number` | `0.7` | 0–1 | Spread of the glow. |
+| `bloomIntensity` | `number` | — | 0–10 | Deprecated alias of `bloom.intensity` (still honoured). |
+| `toneMapping` | `string` | `"aces"` | `aces`, `agx`, `neutral`, `reinhard`, `cineon`, `linear` | Tone mapping, used with and without post-processing. |
+| `exposure` | `number` | `1` | 0–10 | Tone mapping exposure. |
+| `ambientOcclusion` | `number` | `1` | 0–5 | Screen-space ambient occlusion strength (on tiers that have SSAO). |
+| `grain` | `number` | `0.02` | 0–1 | Film grain amount (off on the low tier). |
 
 #### `environment.ambientLight`
 
+A hemisphere light: `color` from above, `groundColor` from below, so shapes keep definition in shadow.
+
 | Field | Type | Default | Range | Description |
 |-------|------|---------|-------|-------------|
-| `intensity` | `number` | `0.17` | 0–1 | Ambient light intensity. |
+| `intensity` | `number` | `0.6` | 0–5 | Ambient light intensity. |
+| `color` | `{ r, g, b }` | `{ 0.75, 0.85, 1 }` | 0–1 per channel | Light from the sky. |
+| `groundColor` | `{ r, g, b }` | `{ 0.42, 0.38, 0.33 }` | 0–1 per channel | Light bounced from the ground. |
+
+#### `environment.shadows`
+
+| Field | Type | Default | Range | Description |
+|-------|------|---------|-------|-------------|
+| `enabled` | `boolean` | `true` | — | Sun shadows. |
+| `distance` | `number` | from the quality tier (40 / 30 / 22) | 0–500 | Half the width in metres of the shadowed area around the player. |
+| `softness` | `number` | `2.5` | 0–20 | Blur radius of shadow edges, in shadow-map texels. |
+| `intensity` | `number` | `1` | 0–1 | Shadow darkness. |
+
+#### `environment.quality`
+
+Rendering quality tiers. `auto` picks a tier from the device (GPU, mobile or desktop, memory, cores) and,
+with `adaptive`, steps down a tier when frames stay slower than about 38 fps.
+
+| Field | Type | Default | Range | Description |
+|-------|------|---------|-------|-------------|
+| `tier` | `string` | `"auto"` | `auto`, `high`, `medium`, `low` | Quality tier. The page URL parameter `?quality=low` (or `medium`, `high`, `auto`) overrides it. |
+| `adaptive` | `boolean` | `true` | — | With `auto`, lower the tier when frames are slow. |
+| `maxPixelRatio` | `number` | — | 0.25–4 | Extra upper limit for the device pixel ratio. |
+
+What each tier controls:
+
+| | `high` (desktop) | `medium` (laptops, high-end phones) | `low` (phones, slow GPUs) |
+|---|---|---|---|
+| Max pixel ratio | 2 | 1.5 | 1 |
+| SSAO | full resolution, 16 samples | half resolution, 8 samples | off |
+| Sun shadow map / area | 4096 px / ±40 m | 2048 px / ±30 m | 1024 px / ±22 m |
+| Point light shadows updated per frame | nearest 2 | nearest 1 | none (refreshed in turns) |
+| Bloom resolution / blur levels | 1/2 / 8 | 1/2 / 6 | 1/4 / 5 |
+| Sky environment map | 256 px | 128 px | 64 px |
+| Film grain | on | on | off |
 
 ---
 
@@ -367,7 +439,7 @@ Allow users to set a custom display name. Default behavior is determined by the 
 
 **Type:** `boolean`
 
-Enable post-processing effects (bloom, etc.). Default behavior is determined by the client library (disabled when not specified).
+Enable post-processing effects (emissive bloom, SSAO, tone mapping, anti-aliasing). Default behavior is determined by the client library (disabled when not specified). Recommended: `true`; the effects scale with `environment.quality`.
 
 ---
 
@@ -486,7 +558,7 @@ The world config is validated at startup against a JSON Schema using [AJV](https
 
 - **Type checking** — every field must match its declared type
 - **No unknown properties** — misspelled keys are rejected
-- **Range constraints** — numeric fields are bounded (e.g., skybox intensity 0–10, bloom 0–1)
+- **Range constraints** — numeric fields are bounded (e.g., skybox intensity 0–10, bloom intensity 0–10)
 - **Required fields** — `url` is required per MML document
 
 Example error output:

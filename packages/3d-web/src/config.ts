@@ -13,6 +13,9 @@ export type MMLDocumentConfig = {
   passAuthToken?: boolean;
 };
 
+/** Linear RGB, channels 0 to 1. */
+export type ColorConfig = { r: number; g: number; b: number };
+
 export type LoadingScreenConfig = {
   background?: string;
   backgroundImageUrl?: string;
@@ -49,6 +52,23 @@ export type WorldConfig = {
       intensity?: number;
       polarAngle?: number;
       azimuthalAngle?: number;
+      color?: ColorConfig;
+    };
+    sky?: {
+      turbidity?: number;
+      rayleigh?: number;
+      mieCoefficient?: number;
+      mieDirectionalG?: number;
+      exposure?: number;
+      nightColor?: ColorConfig;
+      stars?: number;
+      horizonBlend?: number;
+    };
+    timeOfDay?: {
+      hour: number;
+      cycleMinutes?: number;
+      azimuthalAngle?: number;
+      maxElevation?: number;
     };
     envMap?: {
       intensity?: number;
@@ -56,13 +76,37 @@ export type WorldConfig = {
     fog?: {
       fogNear?: number;
       fogFar?: number;
-      fogColor?: { r: number; g: number; b: number };
+      fogColor?: ColorConfig;
     };
     postProcessing?: {
       bloomIntensity?: number;
+      bloom?: {
+        mode?: "emissive" | "luminance";
+        intensity?: number;
+        threshold?: number;
+        smoothing?: number;
+        radius?: number;
+      };
+      toneMapping?: "aces" | "agx" | "neutral" | "reinhard" | "cineon" | "linear";
+      exposure?: number;
+      ambientOcclusion?: number;
+      grain?: number;
     };
     ambientLight?: {
       intensity?: number;
+      color?: ColorConfig;
+      groundColor?: ColorConfig;
+    };
+    shadows?: {
+      enabled?: boolean;
+      distance?: number;
+      softness?: number;
+      intensity?: number;
+    };
+    quality?: {
+      tier?: "auto" | "high" | "medium" | "low";
+      adaptive?: boolean;
+      maxPixelRatio?: number;
     };
   };
   spawn?: {

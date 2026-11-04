@@ -1,3 +1,14 @@
+const colorSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["r", "g", "b"],
+  properties: {
+    r: { type: "number", minimum: 0, maximum: 1 },
+    g: { type: "number", minimum: 0, maximum: 1 },
+    b: { type: "number", minimum: 0, maximum: 1 },
+  },
+};
+
 const vec3Schema = {
   type: "object",
   properties: {
@@ -103,13 +114,58 @@ export const worldConfigSchema = {
             intensity: { type: "number", minimum: 0, maximum: 10 },
             polarAngle: { type: "number", minimum: -360, maximum: 360 },
             azimuthalAngle: { type: "number", minimum: -360, maximum: 360 },
+            color: colorSchema,
+          },
+        },
+        sky: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            turbidity: { type: "number", minimum: 0, maximum: 30 },
+            rayleigh: { type: "number", minimum: 0, maximum: 10 },
+            mieCoefficient: { type: "number", minimum: 0, maximum: 0.1 },
+            mieDirectionalG: { type: "number", minimum: 0, maximum: 0.999 },
+            exposure: { type: "number", minimum: 0, maximum: 10 },
+            nightColor: colorSchema,
+            stars: { type: "number", minimum: 0, maximum: 10 },
+            horizonBlend: { type: "number", minimum: 0, maximum: 90 },
+          },
+        },
+        timeOfDay: {
+          type: "object",
+          additionalProperties: false,
+          required: ["hour"],
+          properties: {
+            hour: { type: "number", minimum: 0, maximum: 24 },
+            cycleMinutes: { type: "number", minimum: 0 },
+            azimuthalAngle: { type: "number", minimum: -360, maximum: 360 },
+            maxElevation: { type: "number", minimum: 5, maximum: 89 },
+          },
+        },
+        shadows: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            enabled: { type: "boolean" },
+            distance: { type: "number", minimum: 0, maximum: 500 },
+            softness: { type: "number", minimum: 0, maximum: 20 },
+            intensity: { type: "number", minimum: 0, maximum: 1 },
+          },
+        },
+        quality: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            tier: { type: "string", enum: ["auto", "high", "medium", "low"] },
+            adaptive: { type: "boolean" },
+            maxPixelRatio: { type: "number", minimum: 0.25, maximum: 4 },
           },
         },
         envMap: {
           type: "object",
           additionalProperties: false,
           properties: {
-            intensity: { type: "number", minimum: 0, maximum: 1 },
+            intensity: { type: "number", minimum: 0, maximum: 5 },
           },
         },
         fog: {
@@ -118,30 +174,41 @@ export const worldConfigSchema = {
           properties: {
             fogNear: { type: "number", minimum: 0 },
             fogFar: { type: "number", minimum: 0 },
-            fogColor: {
-              type: "object",
-              additionalProperties: false,
-              required: ["r", "g", "b"],
-              properties: {
-                r: { type: "number", minimum: 0, maximum: 1 },
-                g: { type: "number", minimum: 0, maximum: 1 },
-                b: { type: "number", minimum: 0, maximum: 1 },
-              },
-            },
+            fogColor: colorSchema,
           },
         },
         postProcessing: {
           type: "object",
           additionalProperties: false,
           properties: {
-            bloomIntensity: { type: "number", minimum: 0, maximum: 1 },
+            bloomIntensity: { type: "number", minimum: 0, maximum: 10 },
+            bloom: {
+              type: "object",
+              additionalProperties: false,
+              properties: {
+                mode: { type: "string", enum: ["emissive", "luminance"] },
+                intensity: { type: "number", minimum: 0, maximum: 10 },
+                threshold: { type: "number", minimum: 0, maximum: 100 },
+                smoothing: { type: "number", minimum: 0, maximum: 10 },
+                radius: { type: "number", minimum: 0, maximum: 1 },
+              },
+            },
+            toneMapping: {
+              type: "string",
+              enum: ["aces", "agx", "neutral", "reinhard", "cineon", "linear"],
+            },
+            exposure: { type: "number", minimum: 0, maximum: 10 },
+            ambientOcclusion: { type: "number", minimum: 0, maximum: 5 },
+            grain: { type: "number", minimum: 0, maximum: 1 },
           },
         },
         ambientLight: {
           type: "object",
           additionalProperties: false,
           properties: {
-            intensity: { type: "number", minimum: 0, maximum: 1 },
+            intensity: { type: "number", minimum: 0, maximum: 5 },
+            color: colorSchema,
+            groundColor: colorSchema,
           },
         },
       },

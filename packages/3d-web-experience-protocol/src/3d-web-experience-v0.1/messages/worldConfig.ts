@@ -21,22 +21,67 @@ export type WorldConfigEnvironment = {
     intensity?: number;
     polarAngle?: number;
     azimuthalAngle?: number;
+    color?: WorldConfigColor;
+  };
+  sky?: {
+    turbidity?: number;
+    rayleigh?: number;
+    mieCoefficient?: number;
+    mieDirectionalG?: number;
+    exposure?: number;
+    nightColor?: WorldConfigColor;
+    stars?: number;
+    horizonBlend?: number;
+  };
+  timeOfDay?: {
+    hour: number;
+    cycleMinutes?: number;
+    azimuthalAngle?: number;
+    maxElevation?: number;
   };
   fog?: {
     fogNear?: number;
     fogFar?: number;
-    fogColor?: {
-      r: number;
-      g: number;
-      b: number;
-    };
+    fogColor?: WorldConfigColor;
   };
   postProcessing?: {
+    /** Deprecated alias of `bloom.intensity`. */
     bloomIntensity?: number;
+    bloom?: {
+      mode?: "emissive" | "luminance";
+      intensity?: number;
+      threshold?: number;
+      smoothing?: number;
+      radius?: number;
+    };
+    toneMapping?: "aces" | "agx" | "neutral" | "reinhard" | "cineon" | "linear";
+    exposure?: number;
+    ambientOcclusion?: number;
+    grain?: number;
   };
   ambientLight?: {
     intensity?: number;
+    color?: WorldConfigColor;
+    groundColor?: WorldConfigColor;
   };
+  shadows?: {
+    enabled?: boolean;
+    distance?: number;
+    softness?: number;
+    intensity?: number;
+  };
+  quality?: {
+    tier?: "auto" | "high" | "medium" | "low";
+    adaptive?: boolean;
+    maxPixelRatio?: number;
+  };
+};
+
+/** A linear RGB colour, channels 0 to 1. */
+export type WorldConfigColor = {
+  r: number;
+  g: number;
+  b: number;
 };
 
 /**
@@ -167,6 +212,36 @@ function isOptionalXYZ(
   );
 }
 
+function validateColor(value: unknown, path: string) {
+  if (!isRecord(value)) {
+    throw new Error(`${path} must be an object`);
+  }
+  for (const channel of ["r", "g", "b"] as const) {
+    const c = value[channel];
+    if (typeof c !== "number" || !Number.isFinite(c)) {
+      throw new Error(`${path}.${channel} must be a finite number`);
+    }
+  }
+}
+
+/** Checks that `section` is an object whose listed keys are optional finite numbers. */
+function validateNumberFields(section: unknown, path: string, keys: string[]): void {
+  if (!isRecord(section)) {
+    throw new Error(`${path} must be an object`);
+  }
+  for (const key of keys) {
+    if (!isOptionalFiniteNumber(section[key])) {
+      throw new Error(`${path}.${key} must be a finite number`);
+    }
+  }
+}
+
+function validateOptionalEnum(value: unknown, path: string, allowed: readonly string[]) {
+  if (value !== undefined && (typeof value !== "string" || !allowed.includes(value))) {
+    throw new Error(`${path} must be one of ${allowed.map((a) => `"${a}"`).join(", ")}`);
+  }
+}
+
 function validateEnvironmentConfiguration(value: unknown): asserts value is WorldConfigEnvironment {
   if (!isRecord(value)) {
     throw new Error("environmentConfiguration must be an object");
@@ -226,6 +301,58 @@ function validateEnvironmentConfiguration(value: unknown): asserts value is Worl
     if (!isOptionalFiniteNumber(value.sun.azimuthalAngle)) {
       throw new Error("environmentConfiguration.sun.azimuthalAngle must be a finite number");
     }
+    if (value.sun.color !== undefined) {
+      validateColor(value.sun.color, "environmentConfiguration.sun.color");
+    }
+  }
+  if ("sky" in value) {
+    validateNumberFields(value.sky, "environmentConfiguration.sky", [
+      "turbidity",
+      "rayleigh",
+      "mieCoefficient",
+      "mieDirectionalG",
+      "exposure",
+      "stars",
+      "horizonBlend",
+    ]);
+    const sky = value.sky as Record<string, unknown>;
+    if (sky.nightColor !== undefined) {
+      validateColor(sky.nightColor, "environmentConfiguration.sky.nightColor");
+    }
+  }
+  if ("timeOfDay" in value) {
+    validateNumberFields(value.timeOfDay, "environmentConfiguration.timeOfDay", [
+      "hour",
+      "cycleMinutes",
+      "azimuthalAngle",
+      "maxElevation",
+    ]);
+    if (typeof (value.timeOfDay as Record<string, unknown>).hour !== "number") {
+      throw new Error("environmentConfiguration.timeOfDay.hour must be a finite number");
+    }
+  }
+  if ("shadows" in value) {
+    validateNumberFields(value.shadows, "environmentConfiguration.shadows", [
+      "distance",
+      "softness",
+      "intensity",
+    ]);
+    if (!isOptionalBoolean((value.shadows as Record<string, unknown>).enabled)) {
+      throw new Error("environmentConfiguration.shadows.enabled must be a boolean");
+    }
+  }
+  if ("quality" in value) {
+    validateNumberFields(value.quality, "environmentConfiguration.quality", ["maxPixelRatio"]);
+    const quality = value.quality as Record<string, unknown>;
+    validateOptionalEnum(quality.tier, "environmentConfiguration.quality.tier", [
+      "auto",
+      "high",
+      "medium",
+      "low",
+    ]);
+    if (!isOptionalBoolean(quality.adaptive)) {
+      throw new Error("environmentConfiguration.quality.adaptive must be a boolean");
+    }
   }
   if ("fog" in value) {
     if (!isRecord(value.fog)) {
@@ -262,6 +389,28 @@ function validateEnvironmentConfiguration(value: unknown): asserts value is Worl
         "environmentConfiguration.postProcessing.bloomIntensity must be a finite number",
       );
     }
+    validateNumberFields(value.postProcessing, "environmentConfiguration.postProcessing", [
+      "exposure",
+      "ambientOcclusion",
+      "grain",
+    ]);
+    validateOptionalEnum(
+      value.postProcessing.toneMapping,
+      "environmentConfiguration.postProcessing.toneMapping",
+      ["aces", "agx", "neutral", "reinhard", "cineon", "linear"],
+    );
+    if (value.postProcessing.bloom !== undefined) {
+      validateNumberFields(
+        value.postProcessing.bloom,
+        "environmentConfiguration.postProcessing.bloom",
+        ["intensity", "threshold", "smoothing", "radius"],
+      );
+      validateOptionalEnum(
+        (value.postProcessing.bloom as Record<string, unknown>).mode,
+        "environmentConfiguration.postProcessing.bloom.mode",
+        ["emissive", "luminance"],
+      );
+    }
   }
   if ("ambientLight" in value) {
     if (!isRecord(value.ambientLight)) {
@@ -269,6 +418,15 @@ function validateEnvironmentConfiguration(value: unknown): asserts value is Worl
     }
     if (!isOptionalFiniteNumber(value.ambientLight.intensity)) {
       throw new Error("environmentConfiguration.ambientLight.intensity must be a finite number");
+    }
+    if (value.ambientLight.color !== undefined) {
+      validateColor(value.ambientLight.color, "environmentConfiguration.ambientLight.color");
+    }
+    if (value.ambientLight.groundColor !== undefined) {
+      validateColor(
+        value.ambientLight.groundColor,
+        "environmentConfiguration.ambientLight.groundColor",
+      );
     }
   }
 }
