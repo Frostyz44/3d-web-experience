@@ -58,6 +58,8 @@ export class ThreeJSWorldRenderer implements IRenderer {
   private collisionsManager: CollisionsManager;
   private mmlTargetWindow: Window;
   private mmlTargetElement: HTMLElement;
+  // Behind the canvas: DOM content (MML m-youtube players) that shows through holes in the canvas
+  private domOverlayContainer: HTMLDivElement;
 
   private characterManager: ThreeJSCharacterManager;
   private mmlManager: ThreeJSMMLManager;
@@ -118,8 +120,22 @@ export class ThreeJSWorldRenderer implements IRenderer {
       this.composer,
     );
 
+    this.domOverlayContainer = document.createElement("div");
+    this.domOverlayContainer.setAttribute("data-dom-overlay-container", "");
+    Object.assign(this.domOverlayContainer.style, {
+      position: "absolute",
+      left: "0",
+      top: "0",
+      width: "100%",
+      height: "100%",
+      overflow: "hidden",
+      pointerEvents: "none",
+    });
+    this.composer.setDOMOverlayContainer(this.domOverlayContainer);
+
     // Initialize MML
     this.mmlCompositionScene = new ThreeJSMMLCompositionScene({
+      domOverlayContainer: this.domOverlayContainer,
       targetElement: this.targetElement,
       scene: this.scene,
       camera: this.threeJSCameraManager.mainCamera,
@@ -156,7 +172,13 @@ export class ThreeJSWorldRenderer implements IRenderer {
       this.loadingProgressManager,
     );
 
-    this.targetElement.appendChild(this.composer.renderer.domElement);
+    // The overlay and then the canvas go first in the target element, so the canvas covers the overlay (both are
+    // positioned, so later wins) while UI elements added to the target element stay above the canvas as before.
+    const canvas = this.composer.renderer.domElement;
+    canvas.style.position = "relative";
+    canvas.style.display = "block";
+    this.targetElement.insertBefore(this.domOverlayContainer, this.targetElement.firstChild);
+    this.targetElement.insertBefore(canvas, this.domOverlayContainer.nextSibling);
 
     // Setup audio context resume on user interaction
     document.addEventListener("mousedown", () => {
@@ -307,6 +329,7 @@ export class ThreeJSWorldRenderer implements IRenderer {
 
     // Dispose composer
     this.composer.dispose();
+    this.domOverlayContainer.remove();
   }
 
   addChatBubble(characterId: number, message: string): void {

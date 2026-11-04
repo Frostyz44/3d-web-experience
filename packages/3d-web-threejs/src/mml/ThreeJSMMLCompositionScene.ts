@@ -26,6 +26,8 @@ import { ThreeJSCollisionManager } from "../collisions/ThreeJSCollisionManager";
 
 type ThreeJSMMLCompositionSceneConfig = {
   targetElement: HTMLElement;
+  // Behind the canvas, for DOM content shown through holes in the canvas (the MML fork's m-youtube)
+  domOverlayContainer?: HTMLElement | null;
   scene: Scene;
   camera: PerspectiveCamera;
   audioListener: AudioListener;
@@ -52,7 +54,10 @@ export class ThreeJSMMLCompositionScene {
     this.promptManager = PromptManager.init(this.config.targetElement);
     this.resourceManager = new ThreeJSResourceManager();
 
-    const graphicsAdapter: ThreeJSGraphicsAdapter = {
+    // getDOMOverlayContainer is optional and only used by MML builds that support DOM content such as m-youtube
+    const graphicsAdapter: ThreeJSGraphicsAdapter & {
+      getDOMOverlayContainer?: () => HTMLElement | null;
+    } = {
       collisionType: null as unknown as Object3D,
       containerType: null as unknown as Object3D,
       getGraphicsAdapterFactory: () => {
@@ -85,6 +90,9 @@ export class ThreeJSMMLCompositionScene {
       },
       getResourceManager: () => {
         return this.resourceManager;
+      },
+      getDOMOverlayContainer: () => {
+        return this.config.domOverlayContainer ?? null;
       },
     };
 

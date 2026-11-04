@@ -97,7 +97,14 @@ const networked3dWebExperienceServer = new Networked3dWebExperienceServer({
         url: `ws:///mml-documents/visuals.html`,
         position: { x: 18, y: 0.03, z: -37 },
       },
+      // Requires the MML fork: a cinema with a shared YouTube screen (m-youtube) and physics crates in front of it
+      cinema: {
+        url: `ws:///mml-documents/cinema.html`,
+        position: { x: 0, y: 0.04, z: -70 },
+      },
     },
+    // POST_PROCESSING=true turns on the renderer's post-processing (SSAO, bloom, tone mapping, grain) for testing
+    ...(process.env.POST_PROCESSING === "true" ? { postProcessingEnabled: true } : {}),
     environmentConfiguration: {
       fog: {
         fogFar: 0,
