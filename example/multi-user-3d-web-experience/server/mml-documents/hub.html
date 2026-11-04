@@ -1,0 +1,137 @@
+<m-group id="hub">
+  <!--
+    Spawn hub for the MML fork world (github.com/Frostyz44/mml-test). Placed at the world origin, so the coordinates
+    here are world coordinates. Players spawn at (0, 0, 0) facing the plaza (towards negative z).
+    Areas: drag playground (-9, -18), materials (9, -18), particles (0, -42), physics (-30, -42), visuals (28, -42).
+    The original MML example is behind the spawn point (positive z).
+  -->
+
+  <!-- Light for the plaza -->
+  <m-light type="point" x="0" y="6" z="-7" intensity="500" distance="30" color="#fff4e0" cast-shadows="false"></m-light>
+
+  <!-- ===== Plaza ===== -->
+  <m-group z="-7">
+    <!-- Glowing rim, just wider than the plaza floor -->
+    <m-cylinder radius="5.25" height="0.04" y="0.02" color="#0b1a22" cast-shadows="false">
+      <m-material emissive="#2ad4ff" emissive-intensity="1.5">
+        <m-attr-anim attr="emissive-intensity" start="0.8" end="2.2" duration="2500" ping-pong="true"></m-attr-anim>
+      </m-material>
+    </m-cylinder>
+    <!-- Brick floor -->
+    <m-cylinder radius="5" height="0.06" y="0.03" color="#b9b2a8">
+      <m-material
+        map="/assets/textures/bricks_color.png"
+        normal-map="/assets/textures/bricks_normal.png"
+        roughness="0.85"
+        repeat-x="5"
+        repeat-y="5"
+      ></m-material>
+    </m-cylinder>
+
+    <!-- Fountain: metal basin, water, a pillar and a stream of sparks. Click it for confetti. -->
+    <m-group id="fountain">
+      <m-cylinder radius="1.4" height="0.6" y="0.3" color="#3a4048">
+        <m-material metalness="0.9" roughness="0.25"></m-material>
+      </m-cylinder>
+      <m-cylinder radius="1.22" height="0.05" y="0.6" color="#3aa0ff" opacity="0.75" cast-shadows="false">
+        <m-material roughness="0.05" metalness="0.1" emissive="#1060c0" emissive-intensity="0.4"></m-material>
+      </m-cylinder>
+      <m-cylinder radius="0.16" height="1.5" y="0.75" color="#202428">
+        <m-material metalness="1" roughness="0.3" emissive="#2ad4ff" emissive-intensity="0.6"></m-material>
+      </m-cylinder>
+      <m-particles preset="sparks" y="1.5"></m-particles>
+      <m-particles id="confetti" preset="confetti" y="1.6" enabled="false" burst="150"></m-particles>
+      <m-light type="point" y="1.8" color="#ffb050" intensity="6" distance="8" cast-shadows="false">
+        <m-attr-anim attr="intensity" start="4" end="8" duration="400" ping-pong="true"></m-attr-anim>
+      </m-light>
+    </m-group>
+  </m-group>
+
+  <!-- ===== Title, floating behind the plaza ===== -->
+  <m-group z="-12.6">
+    <m-text content="MML Fork World" y="5.2" font-size="1" depth="0.3" color="#1d2330">
+      <m-material roughness="0.4" metalness="0.6" emissive-map="/assets/textures/grid_emissive.png" emissive-intensity="2" repeat-x="4" repeat-y="0.6">
+        <m-attr-anim attr="emissive-intensity" start="0.8" end="3" duration="1800" ping-pong="true"></m-attr-anim>
+      </m-material>
+      <m-attr-anim attr="y" start="5" end="5.4" duration="3000" ping-pong="true" easing="easeInOutQuad"></m-attr-anim>
+    </m-text>
+    <m-text content="Click the fountain for confetti" y="3.9" font-size="0.32" depth="0.05" color="#ffffff"></m-text>
+  </m-group>
+
+  <!-- ===== Gates at the start of each path, facing the plaza ===== -->
+  <!-- Straight on: particles, with physics and visuals beyond -->
+  <m-group x="0" z="-12.4">
+    <m-cube x="-1.5" y="1.5" width="0.25" height="3" depth="0.25" color="#202428"><m-material metalness="0.8" roughness="0.3" emissive="#2ad4ff" emissive-intensity="0.8"></m-material></m-cube>
+    <m-cube x="1.5" y="1.5" width="0.25" height="3" depth="0.25" color="#202428"><m-material metalness="0.8" roughness="0.3" emissive="#2ad4ff" emissive-intensity="0.8"></m-material></m-cube>
+    <m-cube y="3.1" width="3.6" height="0.5" depth="0.3" color="#1d2330"><m-material metalness="0.6" roughness="0.4"></m-material></m-cube>
+    <m-text content="Particles" y="3.1" z="0.17" font-size="0.3" depth="0.04" color="#ffc94d"><m-material emissive="#ffb020" emissive-intensity="1.2"></m-material></m-text>
+    <m-text content="then Physics (left) and Visuals (right)" y="2.55" z="0.1" font-size="0.14" depth="0.02" color="#ffffff"></m-text>
+  </m-group>
+  <!-- Left: drag playground -->
+  <m-group x="-4.16" z="-9.77" ry="56">
+    <m-cube x="-1.5" y="1.5" width="0.25" height="3" depth="0.25" color="#202428"><m-material metalness="0.8" roughness="0.3" emissive="#5dff8a" emissive-intensity="0.8"></m-material></m-cube>
+    <m-cube x="1.5" y="1.5" width="0.25" height="3" depth="0.25" color="#202428"><m-material metalness="0.8" roughness="0.3" emissive="#5dff8a" emissive-intensity="0.8"></m-material></m-cube>
+    <m-cube y="3.1" width="3.6" height="0.5" depth="0.3" color="#1d2330"><m-material metalness="0.6" roughness="0.4"></m-material></m-cube>
+    <m-text content="Drag playground" y="3.1" z="0.17" font-size="0.26" depth="0.04" color="#9dffb8"><m-material emissive="#30d060" emissive-intensity="1.2"></m-material></m-text>
+  </m-group>
+  <!-- Right: materials -->
+  <m-group x="3.64" z="-10.43" ry="-47">
+    <m-cube x="-1.5" y="1.5" width="0.25" height="3" depth="0.25" color="#202428"><m-material metalness="0.8" roughness="0.3" emissive="#ff6ad5" emissive-intensity="0.8"></m-material></m-cube>
+    <m-cube x="1.5" y="1.5" width="0.25" height="3" depth="0.25" color="#202428"><m-material metalness="0.8" roughness="0.3" emissive="#ff6ad5" emissive-intensity="0.8"></m-material></m-cube>
+    <m-cube y="3.1" width="3.6" height="0.5" depth="0.3" color="#1d2330"><m-material metalness="0.6" roughness="0.4"></m-material></m-cube>
+    <m-text content="Materials" y="3.1" z="0.17" font-size="0.3" depth="0.04" color="#ffb3ec"><m-material emissive="#e040b0" emissive-intensity="1.2"></m-material></m-text>
+  </m-group>
+  <!-- Behind the spawn point: the original example, facing players who turn around -->
+  <m-group x="0" z="3.2" ry="180">
+    <m-cube x="-1.5" y="1.5" width="0.25" height="3" depth="0.25" color="#202428"><m-material metalness="0.8" roughness="0.3" emissive="#c0c8d0" emissive-intensity="0.5"></m-material></m-cube>
+    <m-cube x="1.5" y="1.5" width="0.25" height="3" depth="0.25" color="#202428"><m-material metalness="0.8" roughness="0.3" emissive="#c0c8d0" emissive-intensity="0.5"></m-material></m-cube>
+    <m-cube y="3.1" width="3.6" height="0.5" depth="0.3" color="#1d2330"><m-material metalness="0.6" roughness="0.4"></m-material></m-cube>
+    <m-text content="Original MML example" y="3.1" z="0.17" font-size="0.2" depth="0.03" color="#ffffff"></m-text>
+  </m-group>
+
+  <!-- ===== Paths: dark strips with glowing edges, each a group at the path's centre, turned along it ===== -->
+  <!-- Plaza to particles -->
+  <m-group x="0" z="-19.6">
+    <m-plane rx="-90" y="0.015" width="1.8" height="15.2" color="#2a2f38" cast-shadows="false"><m-material roughness="0.9"></m-material></m-plane>
+    <m-plane rx="-90" x="-0.92" y="0.02" width="0.08" height="15.2" color="#0b1a22" cast-shadows="false"><m-material emissive="#2ad4ff" emissive-intensity="2"></m-material></m-plane>
+    <m-plane rx="-90" x="0.92" y="0.02" width="0.08" height="15.2" color="#0b1a22" cast-shadows="false"><m-material emissive="#2ad4ff" emissive-intensity="2"></m-material></m-plane>
+    <!-- Lamps along the way -->
+    <m-group x="-1.4" z="-3.5"><m-cylinder radius="0.06" height="1.6" y="0.8" color="#202428"></m-cylinder><m-sphere radius="0.18" y="1.7" color="#fff0c0" cast-shadows="false"><m-material emissive="#ffd27a" emissive-intensity="3"></m-material></m-sphere></m-group>
+    <m-group x="1.4" z="-3.5"><m-cylinder radius="0.06" height="1.6" y="0.8" color="#202428"></m-cylinder><m-sphere radius="0.18" y="1.7" color="#fff0c0" cast-shadows="false"><m-material emissive="#ffd27a" emissive-intensity="3"></m-material></m-sphere></m-group>
+    <m-group x="-1.4" z="3.5"><m-cylinder radius="0.06" height="1.6" y="0.8" color="#202428"></m-cylinder><m-sphere radius="0.18" y="1.7" color="#fff0c0" cast-shadows="false"><m-material emissive="#ffd27a" emissive-intensity="3"></m-material></m-sphere></m-group>
+    <m-group x="1.4" z="3.5"><m-cylinder radius="0.06" height="1.6" y="0.8" color="#202428"></m-cylinder><m-sphere radius="0.18" y="1.7" color="#fff0c0" cast-shadows="false"><m-material emissive="#ffd27a" emissive-intensity="3"></m-material></m-sphere></m-group>
+  </m-group>
+  <!-- Plaza to drag playground -->
+  <m-group x="-6.58" z="-11.39" ry="56.3">
+    <m-plane rx="-90" y="0.015" width="1.8" height="6" color="#2a2f38" cast-shadows="false"><m-material roughness="0.9"></m-material></m-plane>
+    <m-plane rx="-90" x="-0.92" y="0.02" width="0.08" height="6" color="#0b1a22" cast-shadows="false"><m-material emissive="#5dff8a" emissive-intensity="2"></m-material></m-plane>
+    <m-plane rx="-90" x="0.92" y="0.02" width="0.08" height="6" color="#0b1a22" cast-shadows="false"><m-material emissive="#5dff8a" emissive-intensity="2"></m-material></m-plane>
+  </m-group>
+  <!-- Plaza to materials -->
+  <m-group x="6.32" z="-12.97" ry="-46.6">
+    <m-plane rx="-90" y="0.015" width="1.8" height="7.6" color="#2a2f38" cast-shadows="false"><m-material roughness="0.9"></m-material></m-plane>
+    <m-plane rx="-90" x="-0.92" y="0.02" width="0.08" height="7.6" color="#0b1a22" cast-shadows="false"><m-material emissive="#ff6ad5" emissive-intensity="2"></m-material></m-plane>
+    <m-plane rx="-90" x="0.92" y="0.02" width="0.08" height="7.6" color="#0b1a22" cast-shadows="false"><m-material emissive="#ff6ad5" emissive-intensity="2"></m-material></m-plane>
+  </m-group>
+  <!-- Particles to physics (west) and to visuals (east) -->
+  <m-group x="-16.5" z="-42" ry="90">
+    <m-plane rx="-90" y="0.015" width="1.8" height="3.6" color="#2a2f38" cast-shadows="false"><m-material roughness="0.9"></m-material></m-plane>
+    <m-plane rx="-90" x="-0.92" y="0.02" width="0.08" height="3.6" color="#0b1a22" cast-shadows="false"><m-material emissive="#2ad4ff" emissive-intensity="2"></m-material></m-plane>
+    <m-plane rx="-90" x="0.92" y="0.02" width="0.08" height="3.6" color="#0b1a22" cast-shadows="false"><m-material emissive="#2ad4ff" emissive-intensity="2"></m-material></m-plane>
+  </m-group>
+  <m-group x="17.5" z="-42" ry="90">
+    <m-plane rx="-90" y="0.015" width="1.8" height="5.6" color="#2a2f38" cast-shadows="false"><m-material roughness="0.9"></m-material></m-plane>
+    <m-plane rx="-90" x="-0.92" y="0.02" width="0.08" height="5.6" color="#0b1a22" cast-shadows="false"><m-material emissive="#2ad4ff" emissive-intensity="2"></m-material></m-plane>
+    <m-plane rx="-90" x="0.92" y="0.02" width="0.08" height="5.6" color="#0b1a22" cast-shadows="false"><m-material emissive="#2ad4ff" emissive-intensity="2"></m-material></m-plane>
+  </m-group>
+
+  <script>
+    //<![CDATA[
+    // Clicking the fountain bursts confetti for everyone
+    const confetti = document.getElementById("confetti");
+    document.getElementById("fountain").addEventListener("click", () => {
+      confetti.setAttribute("burst-time", document.timeline.currentTime);
+    });
+    //]]>
+  </script>
+</m-group>

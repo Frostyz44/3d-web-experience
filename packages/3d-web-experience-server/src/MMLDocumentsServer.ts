@@ -17,6 +17,8 @@ export class MMLDocumentsServer {
     {
       documentPath: string;
       document: EditableNetworkedDOM;
+      // The connections to this document, closed when its file is removed
+      webSockets: Set<WebSocket>;
     }
   >();
   private disposed = false;
@@ -41,15 +43,20 @@ export class MMLDocumentsServer {
   }
 
   public handle(filename: string, ws: WebSocket) {
-    const document = this.documents.get(filename)?.document;
-    if (!document) {
+    const entry = this.documents.get(filename);
+    if (!entry) {
       ws.close();
       return;
     }
 
+    const { document } = entry;
     document.addWebSocket(ws as any);
+    entry.webSockets.add(ws);
     ws.on("close", () => {
-      if (!this.disposed) {
+      entry.webSockets.delete(ws);
+      // The document may have been removed (and disposed) since this connection was made, in which case it no longer
+      // knows the connection and removing it would throw
+      if (!this.disposed && this.documents.get(filename) === entry) {
         document.removeWebSocket(ws as any);
       }
     });
@@ -83,6 +90,7 @@ export class MMLDocumentsServer {
         const currentData = {
           documentPath: fullPath,
           document,
+          webSockets: new Set<WebSocket>(),
         };
         this.documents.set(relativePath, currentData);
       })
@@ -105,8 +113,13 @@ export class MMLDocumentsServer {
           console.error(`MML Document '${relativePath}' not found`);
           return;
         }
-        documentState.document.dispose();
         this.documents.delete(relativePath);
+        // Close the connections so that clients reconnect (for example if the file is added again)
+        for (const ws of documentState.webSockets) {
+          ws.close();
+        }
+        documentState.webSockets.clear();
+        documentState.document.dispose();
       })
       .on("error", (error) => {
         console.error("Error whilst watching directory", error);

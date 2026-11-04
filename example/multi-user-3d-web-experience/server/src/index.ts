@@ -61,13 +61,17 @@ const networked3dWebExperienceServer = new Networked3dWebExperienceServer({
     assetsUrl: "/assets/",
   },
   worldConfig: {
+    // Players spawn at the hub, facing the plaza (negative z)
+    spawnConfiguration: {
+      spawnPosition: { x: 0, y: 0, z: 0 },
+      spawnPositionVariance: { x: 1.5, y: 0, z: 0.5 },
+      spawnYRotation: 180,
+    },
     mmlDocuments: {
       example: { url: `ws:///mml-documents/example-mml.html` },
-      // The MML fork demos sit together behind the spawn point, apart from the original example content.
-      forkDemosSign: {
-        url: `ws:///mml-documents/fork-demos-sign.html`,
-        position: { x: 0, y: 0, z: -10 },
-      },
+      // Spawn hub (plaza, fountain, title, gates and paths to every area). Its coordinates are world coordinates.
+      // The MML fork areas sit in front of the spawn point (negative z), the original example behind it.
+      hub: { url: `ws:///mml-documents/hub.html` },
       // Requires the MML fork (see scripts/use-mml-fork.mjs): drag-enabled shapes on mml-physics that every player can move, throw and push
       dragPlayground: {
         url: `ws:///mml-documents/drag-playground.html`,

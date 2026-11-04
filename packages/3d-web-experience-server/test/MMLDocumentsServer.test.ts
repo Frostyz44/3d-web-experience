@@ -45,6 +45,7 @@ jest.unstable_mockModule("@mml-io/networked-dom-server", () => ({
 
 const { MMLDocumentsServer } = await import("../src/MMLDocumentsServer");
 const chokidar = await import("chokidar");
+const networkedDomServer = await import("@mml-io/networked-dom-server");
 
 describe("MMLDocumentsServer", () => {
   let server: InstanceType<typeof MMLDocumentsServer>;
@@ -180,5 +181,35 @@ describe("MMLDocumentsServer", () => {
 
     // Calling close handler should not throw
     closeHandler!();
+  });
+
+  test("removing a document closes its WebSockets, and their late close events are ignored", () => {
+    onAdd("/test/dir/doc.html", { isFile: () => true });
+
+    let closeHandler: (() => void) | null = null;
+    const mockWs = {
+      close: jest.fn(),
+      on: jest.fn<any>().mockImplementation((event: string, handler: () => void) => {
+        if (event === "close") {
+          closeHandler = handler;
+        }
+      }),
+    };
+    server.handle("doc.html", mockWs as any);
+    const document = (
+      networkedDomServer.EditableNetworkedDOM as unknown as jest.Mock
+    ).mock.results.at(-1)!.value as any;
+    // A disposed document throws for connections it no longer knows, as the real one does
+    document.removeWebSocket.mockImplementation(() => {
+      throw new Error("Unknown websocket");
+    });
+
+    onUnlink("/test/dir/doc.html");
+    expect(mockWs.close).toHaveBeenCalled();
+    expect(document.dispose).toHaveBeenCalled();
+
+    // The connection closes after the document was removed: this must not throw (it used to crash the server)
+    expect(() => closeHandler!()).not.toThrow();
+    expect(document.removeWebSocket).not.toHaveBeenCalled();
   });
 });
