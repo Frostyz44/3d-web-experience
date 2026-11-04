@@ -4,6 +4,13 @@ Screenshots of the example world (`example/multi-user-3d-web-experience`) with t
 (Frostyz44/mml-test) applied. "Before" is `main` at 5a94a7a; "after" is the `world-visuals` branch with the
 example server's own `environmentConfiguration`. All were taken in headless Chromium with SwiftShader
 (software WebGL) at 1280×720, quality forced to `high` (`?quality=high`) unless noted, and downscaled.
+`main` moved on afterwards (3085dbb: a new physics area, the ball pit and the cinema) and was merged into this
+branch, so the physics pair also differs in content.
+
+The physics and ball pit documents are generated from the fork's mml-physics demo templates and still use
+900 / 500 cd lights, which wash out their floors under the new tone mapping (visible in
+`physics-before-after.jpg`). Suggested values for the templates in Frostyz44/mml-test: physics 900 → 140 and
+300 → 50, ball pit 500 → 90 and 150 → 40 (keeping their `distance`).
 
 | File | What to look at |
 |---|---|
