@@ -95,7 +95,8 @@
         let vy = velocity.y;
         let vz = velocity.z;
         const speed = Math.hypot(vx, vy, vz);
-        if (speed < 0.5) {
+        // Only a clear flick throws; a normal drop, even while still moving slightly, stays put
+        if (speed < 3) {
           return;
         }
         const maxSpeed = 12;
