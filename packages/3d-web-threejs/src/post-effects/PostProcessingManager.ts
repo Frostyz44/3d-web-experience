@@ -7,7 +7,7 @@ import {
   ToneMappingEffect,
   FXAAEffect,
 } from "postprocessing";
-import { PerspectiveCamera, HalfFloatType, Scene, Vector2, WebGLRenderer } from "three";
+import { PerspectiveCamera, HalfFloatType, Scene, Texture, Vector2, WebGLRenderer } from "three";
 
 import { BCSValues, createDefaultBCSValues } from "../tweakpane/blades/effects/bcsFolder";
 import {
@@ -26,6 +26,7 @@ import {
 
 import { BrightnessContrastSaturation } from "./bright-contrast-sat";
 import { GaussGrainEffect } from "./gauss-grain";
+import { HoleMaskCapturePass } from "./HolePunchCompositor";
 import { N8SSAOPass } from "./n8-ssao/N8SSAOPass";
 
 export const PP_GLOBALLY_ENABLED = false;
@@ -88,6 +89,10 @@ export class PostProcessingManager {
   private gaussGrainPass: ShaderPass;
 
   public resolution: Vector2;
+
+  // Captures the scene's alpha for hole-punched DOM content (see HolePunchCompositor)
+  private holeMaskPass: HoleMaskCapturePass | null = null;
+  private holeMaskEnabled = false;
 
   public readonly postProcessingGlobalValues: PostProcessingGlobalValues;
   public readonly bcsValues: BCSValues;
@@ -210,6 +215,46 @@ export class PostProcessingManager {
         effectState.passIndex = this.effectComposer.passes.length - 1;
       }
     });
+
+    // The mask is captured right after the scene render, before any effect changes the alpha. Without effects the
+    // RenderPass draws straight to the canvas and keeps the alpha itself.
+    if (this.holeMaskEnabled && this.effectComposer.passes.length > 1) {
+      if (!this.holeMaskPass) {
+        this.holeMaskPass = new HoleMaskCapturePass();
+      }
+      this.effectComposer.addPass(this.holeMaskPass, 1);
+      this.effectStates.forEach((state) => {
+        if (state.passIndex !== undefined) {
+          state.passIndex = this.effectComposer.passes.indexOf(state.instance);
+        }
+      });
+    }
+  }
+
+  /**
+   * Turns capturing the scene alpha for hole-punched DOM content on or off (only needed while a hole is shown).
+   */
+  public setHoleMaskEnabled(enabled: boolean) {
+    if (this.holeMaskEnabled === enabled) {
+      return;
+    }
+    this.holeMaskEnabled = enabled;
+    this.rebuildPipeline();
+  }
+
+  /**
+   * The captured scene alpha, or null when the canvas already receives the scene alpha directly (no effect passes)
+   * or capturing is off.
+   */
+  public getHoleMaskTexture(): Texture | null {
+    if (
+      this.holeMaskEnabled &&
+      this.holeMaskPass &&
+      this.effectComposer.passes.includes(this.holeMaskPass)
+    ) {
+      return this.holeMaskPass.maskTexture;
+    }
+    return null;
   }
 
   public enableEffect(name: string) {
@@ -393,5 +438,6 @@ export class PostProcessingManager {
 
   public dispose() {
     this.effectComposer.dispose();
+    this.holeMaskPass?.dispose();
   }
 }
