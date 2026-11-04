@@ -6,15 +6,15 @@
   <m-light type="point" intensity="900" x="4" y="8" z="6"></m-light>
   <m-plane rx="-90" width="14" height="10" color="#7a9a7a"></m-plane>
 
-  <m-cube class="toy" x="-2.5" y="0.5" color="#d6302b" drag-enabled="true" drag-plane="ground">
+  <m-cube class="toy" x="-2.5" y="0.5" color="#d6302b" drag-enabled="true" drag-plane="ground" drag-lift="false">
     <!-- Glide between the server's position updates (20 per second) instead of jumping -->
     <m-attr-lerp attr="x,y,z,sx,sy,sz" duration="90" easing="easeOutQuad"></m-attr-lerp>
   </m-cube>
-  <m-sphere class="toy" x="0" y="0.5" radius="0.5" color="#2b6bd6" drag-enabled="true" drag-plane="ground">
+  <m-sphere class="toy" x="0" y="0.5" radius="0.5" color="#2b6bd6" drag-enabled="true" drag-plane="ground" drag-lift="false">
     <!-- Glide between the server's position updates (20 per second) instead of jumping -->
     <m-attr-lerp attr="x,y,z,sx,sy,sz" duration="90" easing="easeOutQuad"></m-attr-lerp>
   </m-sphere>
-  <m-cylinder class="toy" x="2.5" y="0.5" color="#e0b030" drag-enabled="true" drag-plane="ground">
+  <m-cylinder class="toy" x="2.5" y="0.5" color="#e0b030" drag-enabled="true" drag-plane="ground" drag-lift="false">
     <!-- Glide between the server's position updates (20 per second) instead of jumping -->
     <m-attr-lerp attr="x,y,z,sx,sy,sz" duration="90" easing="easeOutQuad"></m-attr-lerp>
   </m-cylinder>
@@ -26,7 +26,7 @@
     height="0.8"
     font-size="22"
     alignment="center"
-    content="Tap to recolour. Drag to slide. Hold Shift while dragging to lift."
+    content="Tap to recolour. Drag to slide across the floor."
   ></m-label>
 
   <script>
