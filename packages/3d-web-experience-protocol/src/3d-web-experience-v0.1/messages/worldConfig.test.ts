@@ -507,3 +507,80 @@ describe("parseWorldConfigPayload - validation edge cases", () => {
     });
   });
 });
+
+describe("environmentConfiguration visual options", () => {
+  const fullEnvironment = {
+    sun: { intensity: 2.6, polarAngle: 50, azimuthalAngle: 30, color: { r: 1, g: 0.95, b: 0.9 } },
+    sky: {
+      turbidity: 2.5,
+      rayleigh: 1.2,
+      mieCoefficient: 0.005,
+      mieDirectionalG: 0.8,
+      exposure: 0.45,
+      nightColor: { r: 0.01, g: 0.02, b: 0.05 },
+      stars: 1,
+      horizonBlend: 8,
+    },
+    timeOfDay: { hour: 17.5, cycleMinutes: 30, azimuthalAngle: 20, maxElevation: 55 },
+    fog: { fogNear: 45, fogFar: 230 },
+    postProcessing: {
+      bloomIntensity: 0.5,
+      bloom: { mode: "emissive", intensity: 1.8, threshold: 0.05, smoothing: 0.3, radius: 0.7 },
+      toneMapping: "aces",
+      exposure: 1,
+      ambientOcclusion: 1,
+      grain: 0.02,
+    },
+    ambientLight: {
+      intensity: 0.6,
+      color: { r: 0.75, g: 0.85, b: 1 },
+      groundColor: { r: 0.4, g: 0.38, b: 0.33 },
+    },
+    shadows: { enabled: true, distance: 35, softness: 2.5, intensity: 0.9 },
+    quality: { tier: "auto", adaptive: true, maxPixelRatio: 2 },
+  };
+
+  function parseEnvironment(environmentConfiguration: unknown) {
+    return parseWorldConfigPayload(JSON.stringify({ environmentConfiguration }));
+  }
+
+  it("accepts every new option and passes it through unchanged", () => {
+    const result = parseEnvironment(fullEnvironment);
+    expect(result).not.toBeInstanceOf(Error);
+    expect((result as WorldConfigPayload).environmentConfiguration).toEqual(fullEnvironment);
+  });
+
+  it("still accepts the original options on their own", () => {
+    const legacy = {
+      sun: { intensity: 1, polarAngle: -45, azimuthalAngle: 180 },
+      fog: { fogFar: 0 },
+      postProcessing: { bloomIntensity: 0.15 },
+      ambientLight: { intensity: 0.17 },
+      envMap: { intensity: 0.6 },
+    };
+    expect(parseEnvironment(legacy)).toEqual({ environmentConfiguration: legacy });
+  });
+
+  it.each([
+    [{ sky: { turbidity: "high" } }, "environmentConfiguration.sky.turbidity"],
+    [{ sky: { nightColor: { r: 0, g: 0 } } }, "environmentConfiguration.sky.nightColor.b"],
+    [{ sky: 3 }, "environmentConfiguration.sky must be an object"],
+    [{ timeOfDay: {} }, "environmentConfiguration.timeOfDay.hour"],
+    [{ timeOfDay: { hour: 12, cycleMinutes: "slow" } }, "timeOfDay.cycleMinutes"],
+    [{ sun: { color: "white" } }, "environmentConfiguration.sun.color must be an object"],
+    [{ postProcessing: { bloom: { mode: "everything" } } }, "bloom.mode must be one of"],
+    [{ postProcessing: { bloom: { intensity: null } } }, "bloom.intensity"],
+    [{ postProcessing: { toneMapping: "filmic" } }, "toneMapping must be one of"],
+    [{ postProcessing: { exposure: Infinity } }, "postProcessing.exposure"],
+    [{ ambientLight: { groundColor: { r: 1, g: 1, b: "x" } } }, "ambientLight.groundColor.b"],
+    [{ shadows: { enabled: "yes" } }, "shadows.enabled must be a boolean"],
+    [{ shadows: { softness: "soft" } }, "shadows.softness"],
+    [{ quality: { tier: "ultra" } }, "quality.tier must be one of"],
+    [{ quality: { adaptive: 1 } }, "quality.adaptive must be a boolean"],
+    [{ quality: { maxPixelRatio: "2" } }, "quality.maxPixelRatio"],
+  ])("rejects invalid %j", (environment, message) => {
+    const result = parseEnvironment(environment);
+    expect(result).toBeInstanceOf(Error);
+    expect((result as Error).message).toContain(message);
+  });
+});

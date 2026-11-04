@@ -208,3 +208,60 @@ describe("buildPageConfig", () => {
     expect(buildPageConfig({ loadingScreen })).toEqual({ loadingScreen });
   });
 });
+
+describe("parseWorldConfig visual environment options", () => {
+  const environment = {
+    sun: { intensity: 2.6, polarAngle: 50, azimuthalAngle: 30, color: { r: 1, g: 0.96, b: 0.9 } },
+    sky: {
+      turbidity: 2.5,
+      rayleigh: 1.2,
+      mieCoefficient: 0.005,
+      mieDirectionalG: 0.8,
+      exposure: 0.45,
+      nightColor: { r: 0.012, g: 0.02, b: 0.05 },
+      stars: 1,
+      horizonBlend: 8,
+    },
+    timeOfDay: { hour: 18.5, cycleMinutes: 24, azimuthalAngle: 20, maxElevation: 55 },
+    fog: { fogNear: 45, fogFar: 230 },
+    postProcessing: {
+      bloom: { mode: "emissive", intensity: 1.8, threshold: 0.05, smoothing: 0.3, radius: 0.7 },
+      toneMapping: "aces",
+      exposure: 1,
+      ambientOcclusion: 1,
+      grain: 0.02,
+    },
+    ambientLight: {
+      intensity: 0.6,
+      color: { r: 0.75, g: 0.85, b: 1 },
+      groundColor: { r: 0.42, g: 0.38, b: 0.33 },
+    },
+    shadows: { enabled: true, distance: 35, softness: 2.5, intensity: 1 },
+    quality: { tier: "auto", adaptive: true, maxPixelRatio: 2 },
+  };
+
+  it("accepts all new options", () => {
+    expect(parseWorldConfig({ environment })).toEqual({ environment });
+  });
+
+  it("keeps accepting bloomIntensity", () => {
+    const config = { environment: { postProcessing: { bloomIntensity: 0.3 } } };
+    expect(parseWorldConfig(config)).toEqual(config);
+  });
+
+  it.each([
+    [{ timeOfDay: { cycleMinutes: 10 } }],
+    [{ timeOfDay: { hour: 25 } }],
+    [{ sky: { nightColor: { r: 2, g: 0, b: 0 } } }],
+    [{ sky: { unknown: 1 } }],
+    [{ postProcessing: { bloom: { mode: "glow" } } }],
+    [{ postProcessing: { toneMapping: "filmic" } }],
+    [{ shadows: { enabled: "yes" } }],
+    [{ shadows: { intensity: 2 } }],
+    [{ quality: { tier: "ultra" } }],
+    [{ quality: { maxPixelRatio: 0 } }],
+    [{ ambientLight: { groundColor: { r: 0.5, g: 0.5 } } }],
+  ])("rejects %j", (env) => {
+    expect(() => parseWorldConfig({ environment: env })).toThrow(/Invalid world config/);
+  });
+});

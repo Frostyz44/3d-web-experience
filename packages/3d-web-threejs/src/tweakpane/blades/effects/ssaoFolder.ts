@@ -1,5 +1,4 @@
 import { BindingApi, BladeApi, BladeController, TpChangeEvent, View } from "@tweakpane/core";
-import { EffectComposer } from "postprocessing";
 import { Color } from "three";
 import { FolderApi } from "tweakpane";
 
@@ -50,8 +49,6 @@ export class SSAOFolder {
   private denoiseSamples: BindingApi;
   private denoiseRadius: BindingApi;
   private aoDisplay: BindingApi;
-
-  private postProcessingSSAOIndex: number = 1;
 
   constructor(
     parentFolder: FolderApi,
@@ -117,20 +114,14 @@ export class SSAOFolder {
     this.folder.addBlade({ view: "separator" });
   }
 
-  public setupChangeEvent(composer: EffectComposer, n8aopass: N8SSAOPass): void {
+  public setupChangeEvent(setSSAOEnabled: (enabled: boolean) => void, n8aopass: N8SSAOPass): void {
     this.folder.on("change", (e: TpChangeEvent<unknown, BladeApi<BladeController<View>>>) => {
       const target = (e.target as any).key;
       if (!target) return;
       switch (target) {
         case "enabled":
-          if (e.value === true) {
-            // addPass internally calls pass.setSize with the correct
-            // device-pixel dimensions from renderer.getDrawingBufferSize()
-            composer.addPass(n8aopass, this.postProcessingSSAOIndex + 2);
-          } else {
-            composer.removePass(n8aopass);
-          }
-          n8aopass.enabled = e.value as boolean;
+          // the post-processing manager owns the pass order
+          setSSAOEnabled(e.value as boolean);
           break;
         case "halfRes":
           n8aopass.configuration.halfRes = e.value as boolean;

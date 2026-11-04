@@ -25,8 +25,11 @@ Spawn anywhere with a URL hash: `#charX,charY,charZ,qx,qy,qz,qw,camX,camY,camZ,q
 - `hub.html` is the spawn plaza at the origin (its coordinates are world coordinates) with gates and paths to every
   area. A new area needs a free spot, an entry in `index.ts`, and a gate or path in the hub.
 - Use `m-text` (3D text) for titles, buttons and labels, not flat `m-label` panels.
-- `physics.html` is generated from the fork (`packages/mml-physics/demo/physics.html`, see the fork's CLAUDE.md);
-  change the template there and copy the built file here.
+- `physics.html` and `ballpit.html` are generated from the fork's templates (`packages/mml-physics/demo/`, see the
+  fork's CLAUDE.md). Change the template there, run `npm run build-demo -w @mml-io/mml-physics` in the fork, then
+  `node scripts/import-physics-demos.mjs` here: it copies them and lowers their lamps for this world's tone mapping.
+- Point lights should not cast shadows (`cast-shadows="false"`) unless really needed: each shadow-casting point
+  light adds a texture to every lit material, and too many push avatar materials over the GPU limit (avatars vanish).
 - Check changes in the running world, for example with headless Chrome (puppeteer with
   `--use-angle=swiftshader --enable-unsafe-swiftshader`) and a screenshot.
 

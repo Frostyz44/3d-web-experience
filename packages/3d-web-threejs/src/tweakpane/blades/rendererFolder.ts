@@ -1,5 +1,4 @@
 import { BladeController, View } from "@tweakpane/core";
-import { EffectPass } from "postprocessing";
 import { NoToneMapping, ShadowMapType, ToneMapping, WebGLRenderer } from "three";
 import { BladeApi, FolderApi, TpChangeEvent } from "tweakpane";
 
@@ -11,15 +10,16 @@ export type RendererValues = {
 
 export function createDefaultRendererValues(): RendererValues {
   return {
-    shadowMap: 2,
+    // PCFShadowMap: three r182 maps PCFSoftShadowMap to it anyway; softness comes from shadow.radius
+    shadowMap: 1,
     toneMapping: 4,
-    exposure: 0.75,
+    exposure: 1,
   };
 }
 
 const rendererOptions = {
   shadowMap: { min: 0, max: 2, step: 1 },
-  toneMapping: { min: 0, max: 5, step: 1 },
+  toneMapping: { min: 0, max: 7, step: 1 },
   exposure: { min: 0, max: 3, step: 0.01 },
 };
 
@@ -36,6 +36,8 @@ const toneMappingTypes: Record<number, string> = {
   3: "CineonToneMapping",
   4: "ACESFilmicToneMapping",
   5: "CustomToneMapping",
+  6: "AgXToneMapping",
+  7: "NeutralToneMapping",
 };
 
 export class RendererFolder {
@@ -70,7 +72,7 @@ export class RendererFolder {
   public setupChangeEvent(
     renderer: WebGLRenderer,
     toneMappingFolder: FolderApi,
-    toneMappingPass: EffectPass | any,
+    onToneMappingChange: (toneMapping: ToneMapping) => void,
   ): void {
     this.folder.on("change", (e: TpChangeEvent<unknown, BladeApi<BladeController<View>>>) => {
       const target = (e.target as any).key;
@@ -84,9 +86,10 @@ export class RendererFolder {
         }
         case "toneMapping":
           const value = e.value as ToneMapping;
+          // 5 (custom) uses the post-processing tone mapping folder settings
           toneMappingFolder.hidden = e.value !== 5;
-          toneMappingPass.enabled = e.value === 5 ? true : false;
           renderer.toneMapping = e.value === 5 ? NoToneMapping : (e.value as ToneMapping);
+          onToneMappingChange(value);
           this.monitoredValues.toneMappingType = toneMappingTypes[e.value as number];
           this.rendererValues.toneMapping = value;
           break;

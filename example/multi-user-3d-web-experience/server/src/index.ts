@@ -108,12 +108,26 @@ const networked3dWebExperienceServer = new Networked3dWebExperienceServer({
         position: { x: 0, y: 0.04, z: -70 },
       },
     },
-    // POST_PROCESSING=true turns on the renderer's post-processing (SSAO, bloom, tone mapping, grain) for testing
-    ...(process.env.POST_PROCESSING === "true" ? { postProcessingEnabled: true } : {}),
+    // Emissive bloom, ambient occlusion and tone mapping. Their cost follows environmentConfiguration.quality.
+    // POST_PROCESSING=false turns them off.
+    postProcessingEnabled: process.env.POST_PROCESSING !== "false",
     environmentConfiguration: {
-      fog: {
-        fogFar: 0,
+      // Late afternoon: warm low sun, long soft shadows, and glowing materials stand out.
+      // Set cycleMinutes (e.g. 30) for a moving day and night cycle.
+      timeOfDay: { hour: 16.5, azimuthalAngle: 20, maxElevation: 55 },
+      sky: { turbidity: 2, rayleigh: 2.2, exposure: 0.45 },
+      // Starts beyond the demo areas and hides the ground's edge (250 m away) in the sky's horizon colour
+      fog: { fogNear: 45, fogFar: 230 },
+      envMap: { intensity: 0.6 },
+      ambientLight: { intensity: 0.6 },
+      shadows: { softness: 2.5 },
+      postProcessing: {
+        bloom: { mode: "emissive", intensity: 1.3, threshold: 0.05, radius: 0.7 },
+        toneMapping: "aces",
+        exposure: 1,
       },
+      // High on desktops, low on phones and slow GPUs; steps down by itself if frames are slow.
+      quality: { tier: "auto", adaptive: true },
     },
     avatarConfiguration: {
       allowCustomAvatars: true,
