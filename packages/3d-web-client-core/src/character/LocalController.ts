@@ -13,6 +13,21 @@ import { getSpawnData } from "./Spawning";
 
 const downVector = new Vect3(0, -1, 0);
 
+// Climbing (MML climbable="true")
+/** How far beyond the capsule a climbable surface can be taken hold of (metres). */
+const climbReach = 0.22;
+/** Distance kept between the capsule's surface and the climbable surface while climbing. */
+const climbGap = 0.06;
+/** Climbing speed (m/s), and while sprinting. */
+const climbSpeed = 1.3;
+const climbSprintSpeed = 2.0;
+/** Climbing animation cycles per metre climbed (its clip is 1.2 s long and covers about 0.75 m). */
+const climbAnimationRatePerMetre = 1.2 / 0.75;
+/** Time to pull up onto a platform at the top (s). */
+const climbMountDuration = 0.8;
+/** After letting go, the same surface is not taken hold of again for this long (ms). */
+const climbRegrabDelay = 450;
+
 export type InputOutput = { direction: number | null; isSprinting: boolean; jump: boolean };
 
 export type InputProvider = {
@@ -108,6 +123,29 @@ export class LocalController {
   private surfaceIsMoving: boolean = false;
 
   public jumpReleased: boolean = true; // Indicates if the jump button has been released
+
+  // Climbing state
+  private climbing = false;
+  private climbNormal = new Vect3(); // horizontal, from the climbable surface towards the character
+  private climbTop = 0;
+  private climbVerticalSpeed = 0;
+  private climbAnimationRate = 0;
+  private climbRegrabAfter = 0;
+  private climbMount: { from: Vect3; to: Vect3; time: number } | null = null;
+  private climbSegment: Line = new Line();
+  private climbRay: Ray = new Ray();
+  private climbVector = new Vect3();
+  private climbQuat = new Quat();
+
+  /** True while the character holds on to a climbable surface or pulls itself up at its top. */
+  public isClimbing(): boolean {
+    return this.climbing || this.climbMount !== null;
+  }
+
+  /** How fast the climbing animation should play (1 = its normal speed, 0 = holding still). */
+  public getClimbingAnimationRate(): number {
+    return this.climbAnimationRate;
+  }
 
   /** Returns true if the character is currently on a moving surface (e.g., a rotating platform) */
   public isOnMovingSurface(): boolean {
@@ -234,6 +272,18 @@ export class LocalController {
       this.currentHeight = Number.POSITIVE_INFINITY;
     }
 
+    if (this.climbMount || this.climbing) {
+      if (this.climbMount) {
+        this.updateClimbMount(deltaTime);
+      } else {
+        this.updateClimbing(deltaTime);
+      }
+      this.checkBounds();
+      this.updateNetworkState();
+      return;
+    }
+    this.climbAnimationRate = 0;
+
     if (this.controlState) {
       this.updateRotation(deltaTime);
     }
@@ -251,7 +301,12 @@ export class LocalController {
       this.updatePosition(deltaTime, deltaTime / steps, i);
     }
 
-    // bounds check
+    this.tryStartClimbing();
+    this.checkBounds();
+    this.updateNetworkState();
+  }
+
+  private checkBounds(): void {
     const outOfBounds =
       this.config.position.x < this.minimumX || // left
       this.config.position.x > this.maximumX || // right
@@ -263,10 +318,223 @@ export class LocalController {
     if (outOfBounds) {
       this.resetPosition();
     }
-    this.updateNetworkState();
+  }
+
+  // -------------------------------------------------------------------------------------------------------------------
+  // Climbing: MML elements with climbable="true" (or inside an m-group with it) can be climbed like a ladder
+
+  /** The capsule's axis at the current position (world). */
+  private capsuleAxis(): Line {
+    const segment = this.climbSegment;
+    segment.copy(this.capsuleInfo.segment);
+    segment.start.add(this.config.position);
+    segment.start.y += this.capsuleInfo.radius;
+    segment.end.add(this.config.position);
+    segment.end.y += this.capsuleInfo.radius;
+    return segment;
+  }
+
+  /** The world direction the player is steering towards (camera relative), or null without input. */
+  private inputHeading(): Vect3 | null {
+    if (!this.controlState || this.controlState.direction === null) {
+      return null;
+    }
+    return this.climbVector
+      .set(0, 0, 1)
+      .applyAxisAngle(this.vectorUp, this.azimuthalAngle + this.controlState.direction);
+  }
+
+  /** Takes hold of a climbable surface when the character walks into it. */
+  private tryStartClimbing(): void {
+    if (performance.now() < this.climbRegrabAfter) {
+      return;
+    }
+    const heading = this.inputHeading();
+    if (!heading) {
+      return;
+    }
+    const contact = this.config.collisionsManager.findClimbable(
+      this.capsuleAxis(),
+      this.capsuleInfo.radius,
+      climbReach,
+    );
+    // Only when moving into the surface, and only if there is something to climb above the feet
+    if (!contact || contact.top < this.config.position.y + 0.6) {
+      return;
+    }
+    const into = -(heading.x * contact.normal.x + heading.z * contact.normal.z);
+    if (into < 0.4) {
+      return;
+    }
+    this.climbing = true;
+    this.climbNormal.copy(contact.normal);
+    this.climbTop = contact.top;
+    this.characterVelocity.set(0, 0, 0);
+    this.characterOnGround = false;
+    this.doubleJumpUsed = false;
+    this.jumpCounter = 0;
+  }
+
+  private stopClimbing(): void {
+    this.climbing = false;
+    this.climbMount = null;
+    this.climbVerticalSpeed = 0;
+    this.climbRegrabAfter = performance.now() + climbRegrabDelay;
+  }
+
+  private updateClimbing(deltaTime: number): void {
+    const position = this.config.position;
+    const control = this.controlState;
+
+    // Jump lets go, pushing away from the surface
+    if (control?.jump && this.jumpReleased) {
+      this.stopClimbing();
+      this.jumpReleased = false;
+      this.jumpCounter = 1;
+      this.characterVelocity.set(
+        this.climbNormal.x * 3.5,
+        this.jumpForce * 0.6,
+        this.climbNormal.z * 3.5,
+      );
+      this.climbAnimationRate = 0;
+      return;
+    }
+    if (!control?.jump) {
+      this.jumpReleased = true;
+    }
+
+    // Forward (W, joystick up; its direction is pi) climbs up, back climbs down; sideways input does not move along
+    // the ladder
+    const vertical = control && control.direction !== null ? -Math.cos(control.direction) : 0;
+    const speed = control?.isSprinting ? climbSprintSpeed : climbSpeed;
+    let verticalSpeed = Math.abs(vertical) < 0.3 ? 0 : Math.sign(vertical) * speed;
+
+    // At the bottom: climbing down onto the ground steps off
+    const feetClearance = this.currentHeight - this.capsuleInfo.radius;
+    if (verticalSpeed < 0 && feetClearance < 0.04) {
+      this.stopClimbing();
+      this.climbAnimationRate = 0;
+      return;
+    }
+
+    // Climbing up: pull up onto a platform beyond the top when there is one within reach of the hands
+    if (verticalSpeed > 0) {
+      const landing = this.findClimbLanding();
+      if (landing) {
+        this.climbMount = { from: position.clone(), to: landing, time: 0 };
+        this.climbing = false;
+        this.climbAnimationRate = 1.5;
+        return;
+      }
+    }
+
+    position.y += verticalSpeed * deltaTime;
+    // Not higher than the climbable surface reaches
+    const highest = this.climbTop - 0.5;
+    if (position.y > highest) {
+      position.y = Math.max(highest, position.y - verticalSpeed * deltaTime);
+      verticalSpeed = 0;
+    }
+
+    // Stay at the surface (it may be uneven or slanted); let go if it ends
+    const contact = this.config.collisionsManager.findClimbable(
+      this.capsuleAxis(),
+      this.capsuleInfo.radius,
+      climbReach + 0.25,
+    );
+    if (!contact) {
+      this.stopClimbing();
+      return;
+    }
+    this.climbTop = contact.top;
+    const blend = Math.min(1, deltaTime * 8);
+    this.climbNormal.lerp(contact.normal, blend);
+    this.climbNormal.y = 0;
+    this.climbNormal.normalize();
+    const correction = (this.capsuleInfo.radius + climbGap - contact.distance) * blend;
+    position.x += contact.normal.x * correction;
+    position.z += contact.normal.z * correction;
+
+    // Walls and ceilings still block the capsule
+    const axis = this.capsuleAxis();
+    this.config.collisionsManager.applyColliders(axis, this.capsuleInfo.radius);
+    position.set(axis.start.x, axis.start.y - this.capsuleInfo.radius, axis.start.z);
+
+    this.faceDirection(-this.climbNormal.x, -this.climbNormal.z, deltaTime);
+    this.climbVerticalSpeed = verticalSpeed;
+    this.climbAnimationRate = Math.abs(verticalSpeed) * climbAnimationRatePerMetre;
+    this.characterVelocity.set(0, 0, 0);
+    this.characterOnGround = false;
+    this.latestPosition.copy(position);
+  }
+
+  /**
+   * A standing place beyond the top of the climbable surface at about chest height (between 0.3 and 1.3 m above the
+   * feet), or null.
+   */
+  private findClimbLanding(): Vect3 | null {
+    const position = this.config.position;
+    const reachForward = this.capsuleInfo.radius * 2 + 0.25;
+    const origin = this.climbVector.set(
+      position.x - this.climbNormal.x * reachForward,
+      position.y + 2.4,
+      position.z - this.climbNormal.z * reachForward,
+    );
+    this.climbRay.set(origin, this.vectorDown);
+    const hit = this.config.collisionsManager.raycastFirst(this.climbRay, 2.4);
+    if (!hit) {
+      return null;
+    }
+    const [distance, normal] = hit;
+    const landingY = origin.y - distance;
+    const rise = landingY - position.y;
+    if (normal.y < 0.7 || rise < 0.3 || rise > 1.3) {
+      return null;
+    }
+    // There must be room to stand: nothing between the landing and head height
+    this.climbRay.set(this.climbVector.set(origin.x, landingY + 0.05, origin.z), this.vectorUp);
+    if (this.config.collisionsManager.raycastFirst(this.climbRay, 1.6)) {
+      return null;
+    }
+    return new Vect3(origin.x, landingY + 0.02, origin.z);
+  }
+
+  /** Pulls the character up onto the landing: first up past the edge, then forward onto it. */
+  private updateClimbMount(deltaTime: number): void {
+    const mount = this.climbMount!;
+    mount.time += deltaTime;
+    const t = Math.min(1, mount.time / climbMountDuration);
+    const smooth = (x: number) => x * x * (3 - 2 * x);
+    const rise = smooth(Math.min(1, t / 0.6));
+    const forward = smooth(Math.max(0, (t - 0.35) / 0.65));
+    this.config.position.set(
+      mount.from.x + (mount.to.x - mount.from.x) * forward,
+      mount.from.y + (mount.to.y - mount.from.y) * rise,
+      mount.from.z + (mount.to.z - mount.from.z) * forward,
+    );
+    this.faceDirection(-this.climbNormal.x, -this.climbNormal.z, deltaTime);
+    this.climbAnimationRate = t < 0.6 ? 1.5 : 0;
+    this.latestPosition.copy(this.config.position);
+    if (t >= 1) {
+      this.stopClimbing();
+      this.characterVelocity.set(0, 0, 0);
+      this.characterOnGround = true;
+    }
+  }
+
+  /** Turns the character smoothly to face a horizontal direction. */
+  private faceDirection(x: number, z: number, deltaTime: number): void {
+    const target = this.climbQuat.setFromAxisAngle(this.vectorUp, Math.atan2(x, z));
+    const difference = this.computeAngularDifference(target);
+    this.config.quaternion.rotateTowards(target, (difference / 0.12) * deltaTime);
   }
 
   public getTargetAnimation(): AnimationState {
+    if (this.isClimbing()) {
+      return this.climbMount && this.climbMount.time / climbMountDuration > 0.6
+        ? AnimationState.idle
+        : AnimationState.climbing;
+    }
     const jumpHeight = this.characterVelocity.y > 0 ? 0.2 : 1.8;
     if (this.currentHeight > jumpHeight && !this.characterOnGround) {
       if (this.doubleJumpUsed) {
@@ -653,6 +921,8 @@ export class LocalController {
    * Reset velocity and jump state (e.g., on teleport).
    */
   public resetVelocity(): void {
+    this.climbing = false;
+    this.climbMount = null;
     this.characterVelocity.set(0, 0, 0);
     this.characterOnGround = false;
     this.doubleJumpUsed = false;

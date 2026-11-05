@@ -8,6 +8,8 @@ export enum AnimationState {
   "doubleJump" = 6,
   // Non-locomotion clip slot; LocalController never produces this.
   "emote" = 7,
+  // Holding on to a climbable surface (MML climbable="true"); the clip plays in step with the climbing speed
+  "climbing" = 8,
 }
 
 /** Senders' clocks are sent modulo this many milliseconds (about 12 days). */

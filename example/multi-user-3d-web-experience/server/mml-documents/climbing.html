@@ -1,0 +1,69 @@
+<!--
+  Climbing: a lookout tower with a ladder and a climbing wall (MML climbable="true").
+  Walk into the ladder or the wall to take hold, climb with forward/back (W/S or the joystick), and you pull yourself
+  up at the top; at the bottom you step off. Jump lets go. Needs the MML fork's world client (climbing).
+-->
+<m-light type="point" x="0" y="7" z="3" intensity="160" distance="22" cast-shadows="false"></m-light>
+
+<!-- Ground pad -->
+<m-plane rx="-90" y="0.01" width="12" height="11" color="#2c3440" cast-shadows="false"><m-material roughness="0.95"></m-material></m-plane>
+
+<m-text content="Climbing" x="0" y="6.4" z="-3.4" font-size="0.7" depth="0.1" color="#ffe2a8"><m-material emissive="#ffb347" emissive-intensity="1.3"></m-material></m-text>
+<m-text content="Walk into the ladder or the wall, then W / S (or the joystick) to climb. Space lets go." x="0" y="5.75" z="-3.4" font-size="0.2" depth="0.02" color="#ffffff"></m-text>
+
+<!-- ===== Lookout tower: a platform 3 m up, reached by the ladder at its front ===== -->
+<m-group x="-2.5" z="-2">
+  <!-- Posts -->
+  <m-cube x="-1.4" y="2" z="-1.4" width="0.2" height="4" depth="0.2" color="#6b4a2b"></m-cube>
+  <m-cube x="1.4" y="2" z="-1.4" width="0.2" height="4" depth="0.2" color="#6b4a2b"></m-cube>
+  <m-cube x="-1.4" y="2" z="1.4" width="0.2" height="4" depth="0.2" color="#6b4a2b"></m-cube>
+  <m-cube x="1.4" y="2" z="1.4" width="0.2" height="4" depth="0.2" color="#6b4a2b"></m-cube>
+  <!-- Platform (top at 3.1 m) -->
+  <m-cube y="3" width="3" height="0.2" depth="3" color="#8a6239"><m-material roughness="0.8"></m-material></m-cube>
+  <!-- Railings on three sides; the front (towards the ladder) stays open -->
+  <m-cube y="4" z="-1.45" width="3" height="0.08" depth="0.08" color="#c9a36b"></m-cube>
+  <m-cube x="-1.45" y="4" width="0.08" height="0.08" depth="3" color="#c9a36b"></m-cube>
+  <m-cube x="1.45" y="4" width="0.08" height="0.08" depth="3" color="#c9a36b"></m-cube>
+  <m-cube y="3.55" z="-1.45" width="3" height="0.06" depth="0.06" color="#c9a36b"></m-cube>
+  <m-cube x="-1.45" y="3.55" width="0.06" height="0.06" depth="3" color="#c9a36b"></m-cube>
+  <m-cube x="1.45" y="3.55" width="0.06" height="0.06" depth="3" color="#c9a36b"></m-cube>
+  <!-- Roof -->
+  <m-cube y="5.4" width="3.4" height="0.15" depth="3.4" color="#b5452f"></m-cube>
+  <m-cube x="-1.4" y="4.7" z="-1.4" width="0.12" height="1.3" depth="0.12" color="#6b4a2b"></m-cube>
+  <m-cube x="1.4" y="4.7" z="-1.4" width="0.12" height="1.3" depth="0.12" color="#6b4a2b"></m-cube>
+  <m-cube x="-1.4" y="4.7" z="1.4" width="0.12" height="1.3" depth="0.12" color="#6b4a2b"></m-cube>
+  <m-cube x="1.4" y="4.7" z="1.4" width="0.12" height="1.3" depth="0.12" color="#6b4a2b"></m-cube>
+
+  <!-- The ladder: rails reach 1 m above the platform, rungs every 30 cm -->
+  <m-group z="1.62" climbable="true">
+    <m-cube x="-0.32" y="2.05" width="0.08" height="4.1" depth="0.08" color="#d8d2c4"><m-material metalness="0.7" roughness="0.35"></m-material></m-cube>
+    <m-cube x="0.32" y="2.05" width="0.08" height="4.1" depth="0.08" color="#d8d2c4"><m-material metalness="0.7" roughness="0.35"></m-material></m-cube>
+    <m-cube y="0.3" width="0.64" height="0.05" depth="0.05" color="#a9a39a"></m-cube>
+    <m-cube y="0.6" width="0.64" height="0.05" depth="0.05" color="#a9a39a"></m-cube>
+    <m-cube y="0.9" width="0.64" height="0.05" depth="0.05" color="#a9a39a"></m-cube>
+    <m-cube y="1.2" width="0.64" height="0.05" depth="0.05" color="#a9a39a"></m-cube>
+    <m-cube y="1.5" width="0.64" height="0.05" depth="0.05" color="#a9a39a"></m-cube>
+    <m-cube y="1.8" width="0.64" height="0.05" depth="0.05" color="#a9a39a"></m-cube>
+    <m-cube y="2.1" width="0.64" height="0.05" depth="0.05" color="#a9a39a"></m-cube>
+    <m-cube y="2.4" width="0.64" height="0.05" depth="0.05" color="#a9a39a"></m-cube>
+    <m-cube y="2.7" width="0.64" height="0.05" depth="0.05" color="#a9a39a"></m-cube>
+    <m-cube y="3.0" width="0.64" height="0.05" depth="0.05" color="#a9a39a"></m-cube>
+  </m-group>
+</m-group>
+
+<!-- ===== Climbing wall: a block 3.2 m high with holds; pull yourself up onto its top ===== -->
+<m-group x="3" z="-2.2">
+  <m-cube y="1.6" width="3" height="3.2" depth="2.4" color="#3d4a5c" climbable="true"><m-material roughness="0.9"></m-material></m-cube>
+  <!-- Holds (decoration only) -->
+  <m-sphere x="-0.9" y="0.5" z="1.22" radius="0.07" color="#ff5d5d" collide="false"></m-sphere>
+  <m-sphere x="0.4" y="0.8" z="1.22" radius="0.08" color="#ffd23f" collide="false"></m-sphere>
+  <m-sphere x="-0.3" y="1.2" z="1.22" radius="0.06" color="#4cd97b" collide="false"></m-sphere>
+  <m-sphere x="0.9" y="1.4" z="1.22" radius="0.07" color="#5db7ff" collide="false"></m-sphere>
+  <m-sphere x="-1.0" y="1.7" z="1.22" radius="0.08" color="#c77dff" collide="false"></m-sphere>
+  <m-sphere x="0.2" y="2.0" z="1.22" radius="0.07" color="#ff8a3d" collide="false"></m-sphere>
+  <m-sphere x="-0.5" y="2.4" z="1.22" radius="0.06" color="#ff5d5d" collide="false"></m-sphere>
+  <m-sphere x="0.8" y="2.6" z="1.22" radius="0.08" color="#4cd97b" collide="false"></m-sphere>
+  <m-sphere x="-0.1" y="2.9" z="1.22" radius="0.07" color="#ffd23f" collide="false"></m-sphere>
+  <m-sphere x="-1.1" y="2.8" z="1.22" radius="0.06" color="#5db7ff" collide="false"></m-sphere>
+  <m-text content="Climbing wall" y="3.6" z="0" font-size="0.25" depth="0.04" color="#ffffff" collide="false"></m-text>
+</m-group>

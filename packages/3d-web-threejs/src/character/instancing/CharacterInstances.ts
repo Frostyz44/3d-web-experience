@@ -108,6 +108,8 @@ export class CharacterInstances {
         return "air";
       case AnimationState.doubleJump:
         return "doubleJump";
+      case AnimationState.climbing:
+        return "climbing";
       default:
         console.warn(`Unknown AnimationState: ${state}, defaulting to idle`);
         return "idle";
@@ -567,6 +569,7 @@ export class CharacterInstances {
       running: animationConfig.sprintAnimation,
       air: animationConfig.airAnimation,
       doubleJump: animationConfig.doubleJumpAnimation,
+      climbing: animationConfig.climbAnimation,
     };
 
     const individualClips: Map<string, AnimationClip> = new Map();

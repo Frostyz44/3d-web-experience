@@ -256,3 +256,23 @@ describe("AnimationMixer", () => {
     expect(times[AnimationState.emote]).toBeCloseTo(0.1, 5);
   });
 });
+
+describe("AnimationMixer climbing", () => {
+  test("the climbing clip plays in step with the climbing speed and holds still without it", () => {
+    const mixer = new AnimationMixer(AnimationState.climbing);
+    mixer.setClimbingTimeScale(2);
+    mixer.update(0.5);
+    expect(mixer.getAnimationTimes()[AnimationState.climbing]).toBeCloseTo(1);
+    mixer.setClimbingTimeScale(0);
+    mixer.update(0.5);
+    expect(mixer.getAnimationTimes()[AnimationState.climbing]).toBeCloseTo(1);
+    expect(mixer.getWeights()[AnimationState.climbing]).toBe(1);
+  });
+
+  test("other clips keep their own speed while climbing is scaled", () => {
+    const mixer = new AnimationMixer(AnimationState.idle);
+    mixer.setClimbingTimeScale(0);
+    mixer.update(0.25);
+    expect(mixer.getAnimationTimes()[AnimationState.idle]).toBeCloseTo(0.25);
+  });
+});

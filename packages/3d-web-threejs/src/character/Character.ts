@@ -22,6 +22,8 @@ export type AnimationConfig = {
   sprintAnimationFileUrl: string;
   airAnimationFileUrl: string;
   doubleJumpAnimationFileUrl: string;
+  /** Climbing (MML climbable="true"); without it the idle animation is used. */
+  climbAnimationFileUrl?: string;
 };
 
 export type LoadedAnimations = {
@@ -30,6 +32,7 @@ export type LoadedAnimations = {
   sprintAnimation: AnimationClip;
   airAnimation: AnimationClip;
   doubleJumpAnimation: AnimationClip;
+  climbAnimation: AnimationClip;
 };
 
 export type CharacterConfig = {
@@ -203,6 +206,9 @@ export class Character extends Group {
       const doubleJumpAnimation = characterModelLoader.loadAnimation(
         animationConfig.doubleJumpAnimationFileUrl,
       );
+      const climbAnimation = animationConfig.climbAnimationFileUrl
+        ? characterModelLoader.loadAnimation(animationConfig.climbAnimationFileUrl)
+        : idleAnimation;
       resolve(
         Promise.all([
           idleAnimation,
@@ -210,6 +216,7 @@ export class Character extends Group {
           sprintAnimation,
           airAnimation,
           doubleJumpAnimation,
+          climbAnimation,
         ]).then((animations) => {
           const animationConfig: LoadedAnimations = {
             idleAnimation: animations[0]!,
@@ -217,6 +224,7 @@ export class Character extends Group {
             sprintAnimation: animations[2]!,
             airAnimation: animations[3]!,
             doubleJumpAnimation: animations[4]!,
+            climbAnimation: animations[5] ?? animations[0]!,
           };
           return animationConfig;
         }),

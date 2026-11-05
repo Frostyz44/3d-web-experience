@@ -98,6 +98,13 @@
     <m-cube y="3.1" width="3.6" height="0.5" depth="0.3" color="#1d2330"><m-material metalness="0.6" roughness="0.4"></m-material></m-cube>
     <m-text content="Ball pit" y="3.1" z="0.17" font-size="0.3" depth="0.04" color="#ffd1f3"><m-material emissive="#ff6ad5" emissive-intensity="1.2"></m-material></m-text>
   </m-group>
+  <!-- East: climbing -->
+  <m-group x="5" z="-7" ry="-90">
+    <m-cube x="-1.5" y="1.5" width="0.25" height="3" depth="0.25" color="#202428"><m-material metalness="0.8" roughness="0.3" emissive="#ffb347" emissive-intensity="0.8"></m-material></m-cube>
+    <m-cube x="1.5" y="1.5" width="0.25" height="3" depth="0.25" color="#202428"><m-material metalness="0.8" roughness="0.3" emissive="#ffb347" emissive-intensity="0.8"></m-material></m-cube>
+    <m-cube y="3.1" width="3.6" height="0.5" depth="0.3" color="#1d2330"><m-material metalness="0.6" roughness="0.4"></m-material></m-cube>
+    <m-text content="Climbing" y="3.1" z="0.17" font-size="0.3" depth="0.04" color="#ffe2a8"><m-material emissive="#ffb347" emissive-intensity="1.2"></m-material></m-text>
+  </m-group>
   <!-- Behind the spawn point: the original example, facing players who turn around -->
   <m-group x="0" z="3.2" ry="180">
     <m-cube x="-1.5" y="1.5" width="0.25" height="3" depth="0.25" color="#202428"><m-material metalness="0.8" roughness="0.3" emissive="#c0c8d0" emissive-intensity="0.5"></m-material></m-cube>
@@ -127,6 +134,12 @@
     <m-plane rx="-90" y="0.015" width="1.8" height="17.6" color="#2a2f38" cast-shadows="false"><m-material roughness="0.9"></m-material></m-plane>
     <m-plane rx="-90" x="-0.92" y="0.02" width="0.08" height="17.6" color="#0b1a22" cast-shadows="false"><m-material emissive="#ff6ad5" emissive-intensity="2"></m-material></m-plane>
     <m-plane rx="-90" x="0.92" y="0.02" width="0.08" height="17.6" color="#0b1a22" cast-shadows="false"><m-material emissive="#ff6ad5" emissive-intensity="2"></m-material></m-plane>
+  </m-group>
+  <!-- Plaza to climbing -->
+  <m-group x="13.25" z="-10" ry="-70">
+    <m-plane rx="-90" y="0.015" width="1.8" height="17.6" color="#2a2f38" cast-shadows="false"><m-material roughness="0.9"></m-material></m-plane>
+    <m-plane rx="-90" x="-0.92" y="0.02" width="0.08" height="17.6" color="#0b1a22" cast-shadows="false"><m-material emissive="#ffb347" emissive-intensity="2"></m-material></m-plane>
+    <m-plane rx="-90" x="0.92" y="0.02" width="0.08" height="17.6" color="#0b1a22" cast-shadows="false"><m-material emissive="#ffb347" emissive-intensity="2"></m-material></m-plane>
   </m-group>
   <!-- Plaza to drag playground -->
   <m-group x="-6.58" z="-11.39" ry="56.3">

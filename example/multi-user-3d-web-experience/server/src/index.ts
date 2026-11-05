@@ -97,6 +97,11 @@ const networked3dWebExperienceServer = new Networked3dWebExperienceServer({
         url: `ws:///mml-documents/ballpit.html`,
         position: { x: -26, y: 0.02, z: -14 },
       },
+      // Requires the MML fork's world client: a ladder up a lookout tower and a climbing wall (climbable="true")
+      climbing: {
+        url: `ws:///mml-documents/climbing.html`,
+        position: { x: 26, y: 0.02, z: -14 },
+      },
       // Requires the MML fork: video on any surface, transparency and 3D text (m-text)
       visuals: {
         url: `ws:///mml-documents/visuals.html`,

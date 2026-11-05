@@ -17,6 +17,7 @@ function createMockConfig(overrides?: Partial<LocalControllerConfig>): LocalCont
     collisionsManager: {
       applyColliders: jest.fn<any>(),
       raycastFirst: jest.fn<any>().mockReturnValue(null),
+      findClimbable: jest.fn<any>().mockReturnValue(null),
       setCullingEnabled: jest.fn(),
       setExemptFromCulling: jest.fn(),
     } as any,

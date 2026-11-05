@@ -18,6 +18,8 @@ export type CollisionMeshState = {
   matrix: Matr4;
   localScale: IVect3;
   source: CollisionSourceRef;
+  /** The MML element the collider belongs to (read for climbable="true"). */
+  element?: MElement;
   meshBVH: MeshBVH;
   trackCollisions: boolean;
   boundingSphereRadius: number; // Cached bounding sphere radius for culling
@@ -50,6 +52,39 @@ export type CollisionMesh = {
   matrix: Matr4;
   localScale: IVect3;
 };
+
+/** A climbable surface within reach of the character (see CollisionsManager.findClimbable). */
+export type ClimbableContact = {
+  /** The closest point of the climbable surfaces to the character's capsule axis (world). */
+  point: Vect3;
+  /** Horizontal unit vector from that point towards the character. */
+  normal: Vect3;
+  /** Horizontal distance from the capsule axis to the surface. */
+  distance: number;
+  /** The top of the climbable surfaces within reach (world y). */
+  top: number;
+};
+
+/**
+ * Whether an MML element is climbable: climbable="true" on the element or on any ancestor (such as the m-group of a
+ * ladder). climbable="false" on the element itself turns it off.
+ */
+function isClimbableElement(element: MElement | undefined): boolean {
+  let node: Element | null = (element as unknown as Element) ?? null;
+  let depth = 0;
+  while (node && depth < 32) {
+    const value = node.getAttribute?.("climbable");
+    if (value === "true") {
+      return true;
+    }
+    if (value === "false") {
+      return false;
+    }
+    node = node.parentElement;
+    depth++;
+  }
+  return false;
+}
 
 export class CollisionsManager {
   private tempVector: Vect3 = new Vect3();
@@ -388,6 +423,7 @@ export class CollisionsManager {
 
     const meshState: CollisionMeshState = {
       source: group,
+      element: mElement,
       meshBVH,
       matrix,
       localScale,
@@ -580,6 +616,104 @@ export class CollisionsManager {
     }
 
     return collisionPosition;
+  }
+
+  private climbPoint = new Vect3();
+  private climbNormal = new Vect3();
+  private climbClosestOnSegment = new Vect3();
+  private climbClosestOnTriangle = new Vect3();
+  private climbSegment = new Line();
+  private climbBox = new Box();
+
+  /**
+   * Finds the climbable surface (an MML element with climbable="true", or inside one) closest to the capsule, if it is
+   * within `reach` of the capsule's surface. Used by the character controller for ladders and climbing walls.
+   */
+  public findClimbable(segment: Line, radius: number, reach: number): ClimbableContact | null {
+    const range = radius + reach;
+    const sx = segment.start.x;
+    const sy = segment.start.y;
+    const sz = segment.start.z;
+    const ex = segment.end.x;
+    const ey = segment.end.y;
+    const ez = segment.end.z;
+    const minX = (sx < ex ? sx : ex) - range;
+    const minY = (sy < ey ? sy : ey) - range;
+    const minZ = (sz < ez ? sz : ez) - range;
+    const maxX = (sx > ex ? sx : ex) + range;
+    const maxY = (sy > ey ? sy : ey) + range;
+    const maxZ = (sz > ez ? sz : ez) + range;
+    let bestDistance = Infinity;
+    let top = -Infinity;
+    const candidates = this.gridQuery(minX, maxX, minZ, maxZ);
+    for (const meshState of candidates) {
+      if (maxX < meshState.worldMinX || minX > meshState.worldMaxX) continue;
+      if (maxY < meshState.worldMinY || minY > meshState.worldMaxY) continue;
+      if (maxZ < meshState.worldMinZ || minZ > meshState.worldMaxZ) continue;
+      if (!isClimbableElement(meshState.element)) continue;
+
+      // The capsule axis and its bounds in mesh space
+      const inverse = this.tempMatrix.copy(meshState.matrix).invert();
+      const meshSegment = this.climbSegment;
+      meshSegment.start.copy(segment.start);
+      meshSegment.end.copy(segment.end);
+      meshSegment.applyMatrix4(inverse);
+      const box = this.climbBox;
+      box.makeEmpty();
+      box.expandByPoint(segment.start);
+      box.expandByPoint(segment.end);
+      box.min.subScalar(range);
+      box.max.addScalar(range);
+      box.applyMatrix4(inverse);
+
+      let meshBest = Infinity;
+      meshState.meshBVH.shapecast({
+        intersectsBounds: (meshBox) => meshBox.intersectsBox(box as unknown as Box3),
+        intersectsTriangle: (triangle) => {
+          const onTriangle = this.tempVector;
+          const onSegment = this.tempVector2;
+          triangle.closestPointToSegment(
+            meshSegment as unknown as Line3,
+            onTriangle as unknown as Vector3,
+            onSegment as unknown as Vector3,
+          );
+          onTriangle.applyMatrix4(meshState.matrix);
+          onSegment.applyMatrix4(meshState.matrix);
+          const dx = onSegment.x - onTriangle.x;
+          const dz = onSegment.z - onTriangle.z;
+          const distance = Math.sqrt(dx * dx + dz * dz + (onSegment.y - onTriangle.y) ** 2);
+          if (distance < meshBest) {
+            meshBest = distance;
+          }
+          if (distance < bestDistance) {
+            bestDistance = distance;
+            this.climbClosestOnTriangle.copy(onTriangle);
+            this.climbClosestOnSegment.copy(onSegment);
+          }
+        },
+      });
+      if (meshBest <= range && meshState.worldMaxY > top) {
+        top = meshState.worldMaxY;
+      }
+    }
+    if (bestDistance > range) {
+      return null;
+    }
+    const normal = this.climbNormal
+      .copy(this.climbClosestOnSegment)
+      .sub(this.climbClosestOnTriangle);
+    normal.y = 0;
+    const horizontal = normal.length();
+    if (horizontal < 1e-6) {
+      return null;
+    }
+    normal.multiplyScalar(1 / horizontal);
+    return {
+      point: this.climbPoint.copy(this.climbClosestOnTriangle),
+      normal,
+      distance: horizontal,
+      top,
+    };
   }
 
   public applyColliders(tempSegment: Line, radius: number) {

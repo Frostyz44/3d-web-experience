@@ -209,6 +209,7 @@ export class CharacterModel {
         false,
         1.45,
       );
+      this.setAnimationFromFile(animationConfig.climbAnimation, AnimationState.climbing, true);
       this.characterHeight = getSimpleHeight(this.mesh);
       if (this.config.isLocal) {
         // Capture the colors before applying custom materials
@@ -295,6 +296,7 @@ export class CharacterModel {
       AnimationState.air,
       AnimationState.airToGround,
       AnimationState.doubleJump,
+      AnimationState.climbing,
     ]) {
       const action = this.animations[stateValue];
       if (action) {
@@ -319,6 +321,7 @@ export class CharacterModel {
       AnimationState.air,
       AnimationState.airToGround,
       AnimationState.doubleJump,
+      AnimationState.climbing,
     ]) {
       const weight = weights[stateValue] || 0;
       if (weight > maxWeight) {
@@ -343,6 +346,7 @@ export class CharacterModel {
       AnimationState.air,
       AnimationState.airToGround,
       AnimationState.doubleJump,
+      AnimationState.climbing,
     ]) {
       const action = this.animations[stateValue];
       if (action) {

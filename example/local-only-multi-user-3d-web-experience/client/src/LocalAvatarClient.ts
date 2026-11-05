@@ -22,6 +22,7 @@ import { EditableNetworkedDOM, NetworkedDOM } from "@mml-io/networked-dom-docume
 
 import hdrJpgUrl from "../../../assets/hdr/puresky_2k.jpg";
 import airAnimationFileUrl from "../../../assets/models/anim_air.glb";
+import climbAnimationFileUrl from "../../../assets/models/anim_climb.glb";
 import doubleJumpAnimationFileUrl from "../../../assets/models/anim_double_jump.glb";
 import idleAnimationFileUrl from "../../../assets/models/anim_idle.glb";
 import jogAnimationFileUrl from "../../../assets/models/anim_jog.glb";
@@ -39,6 +40,7 @@ const animationConfig: AnimationConfig = {
   jogAnimationFileUrl,
   sprintAnimationFileUrl,
   doubleJumpAnimationFileUrl,
+  climbAnimationFileUrl,
 };
 
 const defaultAvatars: CharacterDescription[] = [

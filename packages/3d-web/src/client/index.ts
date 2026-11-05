@@ -17,6 +17,7 @@ import {
 } from "@mml-io/3d-web-experience-protocol";
 
 import airAnimationFileUrl from "../../assets/models/anim_air.glb";
+import climbAnimationFileUrl from "../../assets/models/anim_climb.glb";
 import doubleJumpAnimationFileUrl from "../../assets/models/anim_double_jump.glb";
 import idleAnimationFileUrl from "../../assets/models/anim_idle.glb";
 import jogAnimationFileUrl from "../../assets/models/anim_jog.glb";
@@ -187,6 +188,7 @@ function main() {
       jogAnimationFileUrl,
       sprintAnimationFileUrl,
       doubleJumpAnimationFileUrl,
+      climbAnimationFileUrl,
     },
     loadingScreen: pageConfig.loadingScreen as LoadingScreenConfig | undefined,
     plugins: [new DefaultChatPlugin(), new DefaultAvatarSelectionPlugin(), new DefaultHUDPlugin()],

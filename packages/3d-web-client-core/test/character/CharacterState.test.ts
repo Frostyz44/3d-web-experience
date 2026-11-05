@@ -12,12 +12,13 @@ describe("CharacterState", () => {
     expect(AnimationState.airToGround).toBe(5);
     expect(AnimationState.doubleJump).toBe(6);
     expect(AnimationState.emote).toBe(7);
+    expect(AnimationState.climbing).toBe(8);
   });
 
-  test("AnimationState enum has exactly 8 values", () => {
+  test("AnimationState enum has exactly 9 values", () => {
     // numeric enums have forward and reverse mappings
     const names = Object.keys(AnimationState).filter((k) => isNaN(Number(k)));
-    expect(names).toHaveLength(8);
+    expect(names).toHaveLength(9);
   });
 
   test("AnimationState names match expected string values", () => {
@@ -29,6 +30,7 @@ describe("CharacterState", () => {
     expect(AnimationState[5]).toBe("airToGround");
     expect(AnimationState[6]).toBe("doubleJump");
     expect(AnimationState[7]).toBe("emote");
+    expect(AnimationState[8]).toBe("climbing");
   });
 
   test("CharacterState type can be constructed", () => {

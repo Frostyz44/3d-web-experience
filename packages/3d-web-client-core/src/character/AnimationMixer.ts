@@ -15,6 +15,7 @@ export type AnimationWeights = {
   [AnimationState.airToGround]: number;
   [AnimationState.doubleJump]: number;
   [AnimationState.emote]: number;
+  [AnimationState.climbing]: number;
 };
 
 /**
@@ -30,6 +31,7 @@ export type AnimationTimes = {
   [AnimationState.airToGround]: number;
   [AnimationState.doubleJump]: number;
   [AnimationState.emote]: number;
+  [AnimationState.climbing]: number;
 };
 
 /**
@@ -45,6 +47,8 @@ export class AnimationMixer {
   /** The weights when the current transition started. */
   private fromWeights: AnimationWeights | null = null;
   private animationTimes: AnimationTimes;
+  /** How fast the climbing clip plays (1 = its normal speed, 0 = holding still on the ladder). */
+  private climbingTimeScale: number = 1;
 
   constructor(initialState: AnimationState = AnimationState.idle) {
     this.currentState = initialState;
@@ -79,6 +83,14 @@ export class AnimationMixer {
   }
 
   /**
+   * Sets how fast the climbing clip plays, so that the hands and feet move with the climbing speed (0 pauses it while
+   * the character holds still on a ladder).
+   */
+  public setClimbingTimeScale(scale: number): void {
+    this.climbingTimeScale = scale;
+  }
+
+  /**
    * Update the animation mixer, progressing any active transitions.
    */
   public update(deltaTime: number): void {
@@ -92,9 +104,11 @@ export class AnimationMixer {
       AnimationState.airToGround,
       AnimationState.doubleJump,
       AnimationState.emote,
+      AnimationState.climbing,
     ]) {
       if (this.weights[state] > 0) {
-        this.animationTimes[state] += deltaTime;
+        this.animationTimes[state] +=
+          state === AnimationState.climbing ? deltaTime * this.climbingTimeScale : deltaTime;
       }
     }
 
@@ -183,6 +197,7 @@ export class AnimationMixer {
       [AnimationState.airToGround]: 0,
       [AnimationState.doubleJump]: 0,
       [AnimationState.emote]: 0,
+      [AnimationState.climbing]: 0,
     };
   }
 
@@ -196,6 +211,7 @@ export class AnimationMixer {
       [AnimationState.airToGround]: 0,
       [AnimationState.doubleJump]: 0,
       [AnimationState.emote]: 0,
+      [AnimationState.climbing]: 0,
     };
   }
 

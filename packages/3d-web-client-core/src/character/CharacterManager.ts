@@ -104,6 +104,8 @@ type RemoteCharacterState = {
   lastUsername: string;
   lastCharacterDescription: CharacterDescription | null;
   lastColors: Array<[number, number, number]> | null;
+  /** Smoothed climbing animation rate, from how fast the avatar moves up or down. */
+  climbingRate?: number;
   renderState: CharacterRenderState;
 };
 
@@ -327,6 +329,9 @@ export class CharacterManager {
       // Update animation mixer with target state
       const targetAnimation = this.localController.getTargetAnimation();
       this.localAnimationMixer.setTargetState(targetAnimation);
+      this.localAnimationMixer.setClimbingTimeScale(
+        this.localController.getClimbingAnimationRate(),
+      );
       this.localAnimationMixer.update(deltaTime);
 
       this.localRenderState.animationState = this.localAnimationMixer.getPrimaryState();
@@ -442,12 +447,26 @@ export class CharacterManager {
           this.cachedCharacterStates.set(id, renderState);
         } else {
           // Update existing character's controller with network state
+          const previousY = existingCharacter.controller.position.y;
           existingCharacter.controller.update(networkUpdate, deltaTime);
 
           // Update animation mixer
           existingCharacter.animationMixer.setTargetState(
             existingCharacter.controller.animationState,
           );
+          if (
+            existingCharacter.controller.animationState === AnimationState.climbing &&
+            deltaTime > 0
+          ) {
+            // The climbing clip plays in step with how fast the avatar moves up or down (1.6 cycles per metre)
+            const rate =
+              (Math.abs(existingCharacter.controller.position.y - previousY) / deltaTime) * 1.6;
+            const smoothed =
+              (existingCharacter.climbingRate ?? rate) +
+              (rate - (existingCharacter.climbingRate ?? rate)) * Math.min(1, deltaTime * 10);
+            existingCharacter.climbingRate = smoothed;
+            existingCharacter.animationMixer.setClimbingTimeScale(smoothed);
+          }
           existingCharacter.animationMixer.update(deltaTime);
 
           // Mutate cached renderState in-place

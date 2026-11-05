@@ -7,6 +7,7 @@ import {
 
 import loadingBackground from "../../../assets/images/loading-bg.jpg";
 import airAnimationFileUrl from "../../../assets/models/anim_air.glb";
+import climbAnimationFileUrl from "../../../assets/models/anim_climb.glb";
 import doubleJumpAnimationFileUrl from "../../../assets/models/anim_double_jump.glb";
 import idleAnimationFileUrl from "../../../assets/models/anim_idle.glb";
 import jogAnimationFileUrl from "../../../assets/models/anim_jog.glb";
@@ -27,6 +28,7 @@ const app = new Networked3dWebExperienceClient(holder, {
     jogAnimationFileUrl,
     sprintAnimationFileUrl,
     doubleJumpAnimationFileUrl,
+    climbAnimationFileUrl,
   },
   loadingScreen: {
     background: "#424242",
