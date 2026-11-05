@@ -331,7 +331,11 @@ export class SquareDataTexture extends DataTexture {
     if (size === 1) {
       this._data[id * stride + offset] = value as number;
     } else {
-      (value as UniformValueObj).toArray(this._data, id * stride + offset);
+      // (the union's toArray overloads are not callable together with three r187's types)
+      (value as { toArray(array: ArrayLike<number>, offset: number): unknown }).toArray(
+        this._data,
+        id * stride + offset,
+      );
     }
   }
 

@@ -1,13 +1,14 @@
+// vColor is a vec4 since three r187
 export const instanced_color_vertex = /* glsl */ `
 #ifdef USE_INSTANCING_COLOR_INDIRECT
   #ifdef USE_VERTEX_COLOR
-    vColor = color;
-  #else
     #ifdef USE_COLOR_ALPHA
-      vColor = vec4( 1.0 );
+      vColor = color;
     #else
-      vColor = vec3( 1.0 );
+      vColor = vec4( color, 1.0 );
     #endif
+  #else
+    vColor = vec4( 1.0 );
   #endif
 #endif
 `;

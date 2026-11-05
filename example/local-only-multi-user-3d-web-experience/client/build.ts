@@ -28,6 +28,9 @@ const buildOptions: esbuild.BuildOptions = {
   minify: !isWatch,
   define: {
     "process.env.NODE_ENV": isWatch ? '"development"' : '"production"',
+    // three.js (r184+) builds default asset URLs from import.meta.url when its modules load (DRACOLoader). This bundle
+    // is not an ES module, so import.meta.url would be undefined and new URL() would throw; use the page's address.
+    "import.meta.url": "globalThis.location.href",
   },
   outdir: "./build/",
   assetNames: "[dir]/[name]-[hash]",

@@ -19,6 +19,8 @@ const packages = {
   "mml-web-threejs-standalone": "@mml-io/mml-web-threejs-standalone",
   "networked-dom-web-runner": "@mml-io/networked-dom-web-runner",
   "observable-dom": "@mml-io/observable-dom",
+  // Loads avatars and m-model files (the fork sets up the DRACO decoder for three r184+)
+  "model-loader": "@mml-io/model-loader",
 };
 
 // Packages of the fork that the published packages do not have: installed from the fork when missing

@@ -36,9 +36,10 @@ export const instanced_material_color_vertex = /* glsl */ `
       instanceColor = getMaterialColorTexture(MATERIAL_SKIN); // Using skin index for now
     }
     
-    vColor = instanceColor;
+    // (vColor is a vec4 since three r187)
+    vColor = vec4(instanceColor, 1.0);
   #else
-    vColor = vec3(1.0);
+    vColor = vec4(1.0);
   #endif
 #endif
 `;

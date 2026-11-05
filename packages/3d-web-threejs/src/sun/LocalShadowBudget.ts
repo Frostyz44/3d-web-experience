@@ -51,7 +51,7 @@ export class LocalShadowBudget {
       if (
         ((light as PointLight).isPointLight || (light as SpotLight).isSpotLight) &&
         light.castShadow &&
-        light.shadow
+        (light as PointLight | SpotLight).shadow
       ) {
         found.push(light as PointLight | SpotLight);
       }
