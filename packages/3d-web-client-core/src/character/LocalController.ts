@@ -8,7 +8,7 @@ import { IVect3, Vect3 } from "../math/Vect3";
 import { CharacterControllerValues } from "../tweakpane/blades/characterControlsFolder";
 
 import { SpawnConfigurationState } from "./CharacterManager";
-import { AnimationState, CharacterState } from "./CharacterState";
+import { AnimationState, CharacterState, senderClockWrap } from "./CharacterState";
 import { getSpawnData } from "./Spawning";
 
 const downVector = new Vect3(0, -1, 0);
@@ -607,6 +607,8 @@ export class LocalController {
       },
       rotation: { eulerY: 2 * Math.atan2(characterQuat.y, characterQuat.w) },
       state: this.getTargetAnimation(),
+      // Wrapped to stay a small integer on the wire
+      time: Math.round(performance.now()) % senderClockWrap,
     };
   }
 

@@ -10,6 +10,9 @@ export enum AnimationState {
   "emote" = 7,
 }
 
+/** Senders' clocks are sent modulo this many milliseconds (about 12 days). */
+export const senderClockWrap = 2 ** 30;
+
 export type CharacterState = {
   position: {
     x: number;
@@ -20,4 +23,9 @@ export type CharacterState = {
     eulerY: number;
   };
   state: AnimationState;
+  /**
+   * The sender's clock (milliseconds) when this state was taken, so receivers can play remote avatars back on the
+   * sender's own, even timeline (see RemoteController). Optional for older clients.
+   */
+  time?: number;
 };

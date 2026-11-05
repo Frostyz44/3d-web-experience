@@ -127,6 +127,25 @@ describe("AnimationMixer", () => {
     }
   });
 
+  test("a new state in the middle of a transition blends from what is showing (no pop)", () => {
+    const mixer = new AnimationMixer();
+    mixer.setTargetState(AnimationState.walking);
+    mixer.update(0.05); // mid-transition: idle and walking both show
+    const before = { ...mixer.getWeights() };
+    mixer.setTargetState(AnimationState.running);
+    const after = mixer.getWeights();
+    // The weights do not jump when the target changes
+    for (const state of [AnimationState.idle, AnimationState.walking, AnimationState.running]) {
+      expect(Math.abs(after[state] - before[state])).toBeLessThan(1e-9);
+    }
+    // ... and change gradually from there
+    mixer.update(1 / 60);
+    const next = mixer.getWeights();
+    for (const state of [AnimationState.idle, AnimationState.walking, AnimationState.running]) {
+      expect(Math.abs(next[state] - before[state])).toBeLessThan(0.15);
+    }
+  });
+
   test("rapid state changes snap mid-transition state", () => {
     const mixer = new AnimationMixer();
     mixer.setTargetState(AnimationState.walking);

@@ -727,7 +727,9 @@ export class CharacterInstances {
 
     for (const instance of this.instancedMesh.instances) {
       if (instance.isActive && instance.hasNewTarget) {
-        const lerpFactor = Math.min(this.delta * instance.lerpSpeed, 1.0);
+        // The positions already come smoothed (RemoteController plays them back on an even timeline), so follow them
+        // closely; frame-rate independent
+        const lerpFactor = 1 - Math.exp(-this.delta * Math.max(instance.lerpSpeed, 30));
 
         instance.position.lerp(instance.targetPosition, lerpFactor);
         instance.quaternion.slerp(instance.targetQuaternion, lerpFactor);

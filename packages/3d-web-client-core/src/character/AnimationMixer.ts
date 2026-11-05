@@ -42,6 +42,8 @@ export class AnimationMixer {
   private transitionProgress: number = 1.0; // 0 to 1, where 1 means transition complete
   private transitionDuration: number = 0.15; // Default transition time in seconds
   private weights: AnimationWeights;
+  /** The weights when the current transition started. */
+  private fromWeights: AnimationWeights | null = null;
   private animationTimes: AnimationTimes;
 
   constructor(initialState: AnimationState = AnimationState.idle) {
@@ -60,16 +62,17 @@ export class AnimationMixer {
       return;
     }
 
-    // If we're mid-transition, snap to the target and start a new transition
-    if (this.transitionProgress < 1.0) {
-      this.currentState = this.targetState;
-    }
-
+    // Blend from whatever is showing now (also in the middle of a transition), so quick changes such as
+    // walk -> run -> walk or landing during a jump never pop
+    this.fromWeights = { ...this.weights };
+    this.currentState = this.targetState;
     this.targetState = state;
     this.transitionProgress = 0.0;
 
-    // Reset the time for the new target animation to start from 0
-    this.animationTimes[state] = 0.0;
+    // A clip that is fading out keeps its time; one that was not showing starts from 0
+    if (this.weights[state] <= 0.001) {
+      this.animationTimes[state] = 0.0;
+    }
 
     // Update weights immediately to reflect the new transition
     this.updateWeights();
@@ -155,8 +158,15 @@ export class AnimationMixer {
     if (this.transitionProgress >= 1.0) {
       // Transition complete
       this.weights[this.targetState] = 1.0;
+    } else if (this.fromWeights) {
+      // In transition: blend from the weights at its start to the target
+      const t = this.easeInOut(this.transitionProgress);
+      for (const key of Object.keys(this.fromWeights)) {
+        const state = Number(key) as AnimationState;
+        this.weights[state] = this.fromWeights[state] * (1.0 - t);
+      }
+      this.weights[this.targetState] += t;
     } else {
-      // In transition: blend between current and target
       const t = this.easeInOut(this.transitionProgress);
       this.weights[this.currentState] = 1.0 - t;
       this.weights[this.targetState] = t;

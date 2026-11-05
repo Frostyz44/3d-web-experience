@@ -53,6 +53,11 @@ export type UserNetworkingServerOptions = {
    */
   onCustomMessage?: (connectionId: number, customType: number, contents: string) => void;
   /**
+   * How often users' positions are relayed, in milliseconds. Default 33 (30 times a second, matching how often clients
+   * send), which keeps remote avatars' playback delay short.
+   */
+  tickIntervalMs?: number;
+  /**
    * Maps a WebSocket sub-protocol (negotiated at the HTTP upgrade) to the
    * corresponding delta-net sub-protocol string used on the wire.
    *
@@ -108,7 +113,7 @@ export class UserNetworkingServer {
           this.options.onClientAuthenticated(connectionId);
         }
       }
-    }, 50);
+    }, this.options.tickIntervalMs ?? 33);
   }
 
   private handleStatesUpdate(

@@ -598,7 +598,14 @@ export class CameraManager {
     return state.fov;
   }
 
-  public update(onFlyCameraUpdate?: (state: CameraState) => void): void {
+  /**
+   * Updates the camera. `deltaTime` (seconds) makes the smoothing the same at every frame rate (the damping values are
+   * per frame at 60 frames per second).
+   */
+  public update(onFlyCameraUpdate?: (state: CameraState) => void, deltaTime = 1 / 60): void {
+    const frames = Math.max(0, Math.min(6, deltaTime * 60));
+    const damping = 1 - Math.pow(1 - this.damping, frames);
+    const zoomDamping = 1 - Math.pow(1 - this.zoomDamping, frames);
     if (!this.isMainCameraActive) {
       // Update fly camera orbit controls
       this.updateFlyCameraOrbitControls();
@@ -609,24 +616,24 @@ export class CameraManager {
     }
 
     if (this.isLerping && this.lerpFactor < 1) {
-      this.lerpFactor += 0.01 / this.lerpDuration;
+      this.lerpFactor += (0.01 / this.lerpDuration) * frames;
       this.lerpFactor = Math.min(1, this.lerpFactor);
       this.target.lerpVectors(this.lerpTarget, this.finalTarget, this.easeOutExpo(this.lerpFactor));
     } else {
       this.adjustCameraPosition(this.cameraState.position, this.cameraState.rotation);
     }
 
-    this.distance += (this.targetDistance - this.distance) * this.zoomDamping;
+    this.distance += (this.targetDistance - this.distance) * zoomDamping;
 
-    this.theta += (this.targetTheta - this.theta) * this.damping;
-    this.phi += (this.targetPhi - this.phi) * this.damping;
+    this.theta += (this.targetTheta - this.theta) * damping;
+    this.phi += (this.targetPhi - this.phi) * damping;
 
     const x = this.target.x + this.distance * Math.sin(this.phi) * Math.cos(this.theta);
     const y = this.target.y + this.distance * Math.cos(this.phi);
     const z = this.target.z + this.distance * Math.sin(this.phi) * Math.sin(this.theta);
 
     this.recomputeFoV();
-    this.fov += (this.targetFOV - this.fov) * this.zoomDamping;
+    this.fov += (this.targetFOV - this.fov) * zoomDamping;
 
     this.cameraState.position.set(x, y, z);
     this.cameraState.fov = this.fov;

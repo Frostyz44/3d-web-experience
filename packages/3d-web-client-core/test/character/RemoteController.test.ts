@@ -1,156 +1,177 @@
 import { describe, expect, test } from "@jest/globals";
 
-import { AnimationState } from "../../src/character/CharacterState";
+import { AnimationState, CharacterState } from "../../src/character/CharacterState";
 import { RemoteController } from "../../src/character/RemoteController";
 import { EulXYZ } from "../../src/math/EulXYZ";
 import { Vect3 } from "../../src/math/Vect3";
 
-describe("RemoteController", () => {
-  function createController(pos = new Vect3(), rot = new EulXYZ()) {
-    return new RemoteController(pos, rot, AnimationState.idle);
-  }
+/** A remote user's updates as they arrive: taken every `sendMs` on the sender's clock, relayed on a server tick. */
+type Arrival = { at: number; update: CharacterState };
 
-  function makeUpdate(
-    x: number,
-    y: number,
-    z: number,
-    state: AnimationState = AnimationState.idle,
-    eulerY = 0,
-  ) {
-    return {
-      position: { x, y, z },
-      rotation: { eulerY },
-      state,
-    };
-  }
+function makeUpdate(
+  x: number,
+  y: number,
+  z: number,
+  time?: number,
+  state: AnimationState = AnimationState.idle,
+  eulerY = 0,
+): CharacterState {
+  return { position: { x, y, z }, rotation: { eulerY }, state, time };
+}
 
-  test("initializes position from constructor", () => {
-    const ctrl = createController(new Vect3(5, 10, 15));
-    expect(ctrl.position.x).toBeCloseTo(5);
-    expect(ctrl.position.y).toBeCloseTo(10);
-    expect(ctrl.position.z).toBeCloseTo(15);
-  });
-
-  test("initializes with provided animation state", () => {
-    const ctrl = new RemoteController(new Vect3(), new EulXYZ(), AnimationState.running);
-    expect(ctrl.animationState).toBe(AnimationState.running);
-  });
-
-  test("first update snaps position", () => {
-    const ctrl = createController();
-    ctrl.update(makeUpdate(10, 20, 30), 0.016);
-    expect(ctrl.position.x).toBeCloseTo(10);
-    expect(ctrl.position.y).toBeCloseTo(20);
-    expect(ctrl.position.z).toBeCloseTo(30);
-  });
-
-  test("first update snaps rotation", () => {
-    const ctrl = createController();
-    const angle = Math.PI / 2;
-    ctrl.update(makeUpdate(0, 0, 0, AnimationState.idle, angle), 0.016);
-    expect(ctrl.rotation.y).toBeCloseTo(Math.sin(angle / 2));
-    expect(ctrl.rotation.w).toBeCloseTo(Math.cos(angle / 2));
-  });
-
-  test("first update sets animation state", () => {
-    const ctrl = createController();
-    ctrl.update(makeUpdate(0, 0, 0, AnimationState.walking), 0.016);
-    expect(ctrl.animationState).toBe(AnimationState.walking);
-  });
-
-  test("subsequent updates interpolate position", () => {
-    const ctrl = createController();
-    // First update snaps
-    ctrl.update(makeUpdate(0, 0, 0), 0.016);
-    // Second update should interpolate
-    ctrl.update(makeUpdate(1, 0, 0), 0.016);
-    // Position should be between 0 and 1
-    expect(ctrl.position.x).toBeGreaterThan(0);
-    expect(ctrl.position.x).toBeLessThan(1);
-  });
-
-  test("interpolation converges toward target over time", () => {
-    const ctrl = createController();
-    ctrl.update(makeUpdate(0, 0, 0), 0.016);
-    ctrl.update(makeUpdate(2, 0, 0), 0.016);
-    const posAfterFirst = ctrl.position.x;
-
-    // Apply many more frames with same target
-    for (let i = 0; i < 100; i++) {
-      ctrl.update(makeUpdate(2, 0, 0), 0.016);
+/**
+ * A controller on a virtual clock, fed with the latest update that has arrived each frame (as the networking does:
+ * the same state is seen again on frames without news).
+ */
+function playback(arrivals: Array<Arrival>, frames: number, frameMs = 1000 / 60) {
+  let now = 0;
+  const first = arrivals[0].update;
+  const controller = new RemoteController(
+    new Vect3(first.position.x, first.position.y, first.position.z),
+    new EulXYZ(),
+    first.state,
+    () => now,
+  );
+  const shown: Array<{ t: number; x: number; z: number; yaw: number; state: AnimationState }> = [];
+  let latest = first;
+  let next = 0;
+  for (let f = 0; f < frames; f++) {
+    now = f * frameMs;
+    while (next < arrivals.length && arrivals[next].at <= now) {
+      latest = arrivals[next].update;
+      next++;
     }
-    expect(ctrl.position.x).toBeGreaterThan(posAfterFirst);
-    expect(ctrl.position.x).toBeCloseTo(2, 1);
+    controller.update(latest, frameMs / 1000);
+    shown.push({
+      t: now,
+      x: controller.position.x,
+      z: controller.position.z,
+      yaw: controller.getRotationEuler().y,
+      state: controller.animationState,
+    });
+  }
+  return { controller, shown };
+}
+
+/** Updates sent every 33 ms while walking at `speed` along x, relayed on a server tick with jitter. */
+function walking(speed: number, durationMs: number, jitter: (i: number) => number, tickMs = 33) {
+  const sent: Array<{ t: number; update: CharacterState }> = [];
+  for (let t = 0; t <= durationMs; t += 33) {
+    sent.push({ t, update: makeUpdate((speed * t) / 1000, 0, 0, t, AnimationState.walking) });
+  }
+  const arrivals: Array<Arrival> = [];
+  let tick = 0;
+  for (let at = 0; at <= durationMs + 200; at += tickMs, tick++) {
+    // The server relays the newest update it has; it reaches this client after 40 ms plus jitter
+    const latest = [...sent].reverse().find((s) => s.t <= at);
+    if (latest) {
+      arrivals.push({ at: at + 40 + jitter(tick), update: latest.update });
+    }
+  }
+  arrivals.sort((a, b) => a.at - b.at);
+  return arrivals;
+}
+
+describe("RemoteController", () => {
+  test("starts where the user is and snaps on the first update", () => {
+    const { controller } = playback([{ at: 0, update: makeUpdate(3, 1, -2, 0) }], 1);
+    expect(controller.position.x).toBe(3);
+    expect(controller.position.y).toBe(1);
+    expect(controller.position.z).toBe(-2);
   });
 
-  test("large jump (>5m) teleports instead of interpolating", () => {
-    const ctrl = createController();
-    ctrl.update(makeUpdate(0, 0, 0), 0.016);
-    // Move more than 5 meters
-    ctrl.update(makeUpdate(10, 0, 0), 0.016);
-    // Should teleport directly
-    expect(ctrl.position.x).toBeCloseTo(10);
+  test.each([
+    ["33 ms relay", 33],
+    ["50 ms relay (uneven steps of 33 and 67 ms)", 50],
+  ])("plays updates back at an even speed although they arrive unevenly (%s)", (_name, tickMs) => {
+    // Up to 30 ms of jitter on top
+    const arrivals = walking(2, 5000, (i) => ((i * 7919) % 31) - 1, tickMs as number);
+    const { shown } = playback(arrivals, 300);
+    const speeds: Array<number> = [];
+    for (let i = 60; i < shown.length; i++) {
+      speeds.push((shown[i].x - shown[i - 1].x) / ((shown[i].t - shown[i - 1].t) / 1000));
+    }
+    const mean = speeds.reduce((a, b) => a + b, 0) / speeds.length;
+    const worst = Math.max(...speeds.map((s) => Math.abs(s - mean)));
+    expect(mean).toBeCloseTo(2, 1);
+    // Within 10% of the walking speed on every frame: no stutter
+    expect(worst).toBeLessThan(0.2);
   });
 
-  test("teleport threshold is exactly 5m", () => {
-    const ctrl = createController();
-    ctrl.update(makeUpdate(0, 0, 0), 0.016);
-    // Move exactly 5m — should interpolate (not > 5)
-    ctrl.update(makeUpdate(5, 0, 0), 0.016);
-    // Should NOT have teleported, so position < 5
-    expect(ctrl.position.x).toBeLessThan(5);
+  test("stays a short, adaptive delay behind the newest update", () => {
+    const arrivals = walking(2, 3000, () => 0);
+    const { controller, shown } = playback(arrivals, 180);
+    expect(controller.getDelay()).toBeGreaterThanOrEqual(50);
+    expect(controller.getDelay()).toBeLessThan(140);
+    // Shown position lags the sender by about the delay plus the network time, not more
+    const last = shown[shown.length - 1];
+    expect((last.t / 1000) * 2 - last.x).toBeLessThan(0.5);
   });
 
-  test("rotation slerps between updates", () => {
-    const ctrl = createController();
-    ctrl.update(makeUpdate(0, 0, 0, AnimationState.idle, 0), 0.016);
-    const angle = Math.PI / 2;
-    const expectedQY = Math.sin(angle / 2);
-    ctrl.update(makeUpdate(0, 0, 0, AnimationState.idle, angle), 0.016);
-    // Rotation should be partially interpolated
-    expect(ctrl.rotation.y).toBeGreaterThan(0);
-    expect(ctrl.rotation.y).toBeLessThan(expectedQY);
+  test("continues briefly through a gap, then holds", () => {
+    const arrivals = walking(2, 1000, () => 0).filter((a) => a.at < 1000);
+    const { shown } = playback(arrivals, 120);
+    const atGapEnd = shown[shown.length - 1].x;
+    // It did not stop dead at the last update (about 1.9 m) but did not run on for ever either
+    expect(atGapEnd).toBeGreaterThan(1.8);
+    expect(atGapEnd).toBeLessThan(2.4);
   });
 
-  test("animation state updates immediately (not interpolated)", () => {
-    const ctrl = createController();
-    ctrl.update(makeUpdate(0, 0, 0, AnimationState.idle), 0.016);
-    ctrl.update(makeUpdate(0, 0, 0, AnimationState.running), 0.016);
-    expect(ctrl.animationState).toBe(AnimationState.running);
+  test("teleports instead of sliding across a long jump", () => {
+    const arrivals: Array<Arrival> = [
+      { at: 0, update: makeUpdate(0, 0, 0, 0) },
+      { at: 33, update: makeUpdate(0, 0, 0, 33) },
+      { at: 66, update: makeUpdate(20, 0, 0, 66) },
+      { at: 99, update: makeUpdate(20, 0, 0, 99) },
+    ];
+    const { shown } = playback(arrivals, 40);
+    // Never shown in between
+    expect(shown.every((s) => s.x < 0.01 || s.x > 19.99)).toBe(true);
+    expect(shown[shown.length - 1].x).toBeCloseTo(20, 5);
   });
 
-  test("getRotationEuler returns EulXYZ from current rotation", () => {
-    const ctrl = createController();
-    const euler = ctrl.getRotationEuler();
-    expect(euler).toBeDefined();
-    // Identity quaternion => near-zero euler angles
-    expect(euler.x).toBeCloseTo(0);
-    expect(euler.y).toBeCloseTo(0);
-    expect(euler.z).toBeCloseTo(0);
+  test("turns the short way round", () => {
+    const arrivals: Array<Arrival> = [];
+    for (let i = 0; i < 20; i++) {
+      // From 3.0 rad to -3.0 rad: the short way passes through pi, not through 0
+      const yaw = i < 5 ? 3 : -3;
+      arrivals.push({
+        at: i * 33 + 40,
+        update: makeUpdate(0, 0, 0, i * 33, AnimationState.idle, yaw),
+      });
+    }
+    const { shown } = playback(arrivals, 60);
+    for (const s of shown.slice(10)) {
+      expect(Math.abs(Math.cos(s.yaw))).toBeGreaterThan(0.95);
+    }
   });
 
-  test("frame-rate independence: large dt converges faster", () => {
-    const ctrl1 = createController();
-    const ctrl2 = createController();
-
-    // Both start at same position
-    ctrl1.update(makeUpdate(0, 0, 0), 0.016);
-    ctrl2.update(makeUpdate(0, 0, 0), 0.016);
-
-    // Move to same target with different frame times
-    ctrl1.update(makeUpdate(3, 0, 0), 0.016); // small dt
-    ctrl2.update(makeUpdate(3, 0, 0), 0.1); // large dt
-
-    // Larger dt should get closer to target
-    expect(ctrl2.position.x).toBeGreaterThan(ctrl1.position.x);
+  test("changes the animation state when the sender did, after the delay", () => {
+    const arrivals: Array<Arrival> = [];
+    for (let i = 0; i < 30; i++) {
+      const state = i < 10 ? AnimationState.walking : AnimationState.running;
+      arrivals.push({ at: i * 33 + 40, update: makeUpdate(i * 0.05, 0, 0, i * 33, state) });
+    }
+    const { shown } = playback(arrivals, 80);
+    const firstRunning = shown.findIndex((s) => s.state === AnimationState.running);
+    // The switch happened at 330 ms on the sender's clock: shown later (network time plus delay), not earlier
+    expect(shown[firstRunning].t).toBeGreaterThan(330 + 40);
+    expect(shown[firstRunning].t).toBeLessThan(330 + 40 + 250);
   });
 
-  test("position is a copy, not a reference to constructor argument", () => {
-    const original = new Vect3(1, 2, 3);
-    const ctrl = createController(original);
-    original.set(99, 99, 99);
-    expect(ctrl.position.x).toBeCloseTo(1);
-    expect(ctrl.position.y).toBeCloseTo(2);
-    expect(ctrl.position.z).toBeCloseTo(3);
+  test("works with updates without the sender's clock (older clients)", () => {
+    const arrivals: Array<Arrival> = [];
+    for (let i = 0; i < 40; i++) {
+      arrivals.push({ at: i * 50, update: makeUpdate(i * 0.1, 0, 0, undefined) });
+    }
+    const { shown } = playback(arrivals, 140);
+    expect(shown[shown.length - 1].x).toBeGreaterThan(3.5);
+  });
+
+  test("position is a copy, not a reference to the constructor argument", () => {
+    const pos = new Vect3(1, 2, 3);
+    const controller = new RemoteController(pos, new EulXYZ(), AnimationState.idle);
+    pos.set(9, 9, 9);
+    expect(controller.position.x).toBe(1);
   });
 });
