@@ -9,7 +9,7 @@
   "dependencies": {
     "@mml-io/3d-web-experience-bridge": "^0.28.0",
     "@mml-io/3d-web-experience-server": "^0.28.0",
-    "express": "4.21.2",
+    "express": "^4.22.3",
     "tsx": "^4.19.4"
   }
 }

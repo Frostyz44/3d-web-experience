@@ -28,9 +28,9 @@
     "@mml-io/delta-net-server": "^0.28.0",
     "@mml-io/delta-net-web": "^0.28.0",
     "chokidar": "4.0.3",
-    "express": "4.21.2",
+    "express": "^4.22.3",
     "express-ws": "5.0.2",
-    "ws": "8.18.0"
+    "ws": "^8.22.1"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
