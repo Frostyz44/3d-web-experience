@@ -21,6 +21,12 @@ const packages = {
   "observable-dom": "@mml-io/observable-dom",
 };
 
+// Packages of the fork that the published packages do not have: installed from the fork when missing
+// (mml-web depends on the deterministic physics engine of physics v3)
+const forkOnlyPackages = {
+  "mml-physics-core": "@mml-io/mml-physics-core",
+};
+
 let problems = 0;
 for (const [dir, name] of Object.entries(packages)) {
   const source = path.join(forkRoot, "packages", dir);
@@ -46,5 +52,19 @@ for (const [dir, name] of Object.entries(packages)) {
   fs.rmSync(path.join(target, "build"), { recursive: true, force: true });
   fs.cpSync(path.join(source, "build"), path.join(target, "build"), { recursive: true });
   console.log(`${name} <- ${path.relative(repoRoot, source)}`);
+}
+for (const [dir, name] of Object.entries(forkOnlyPackages)) {
+  const source = path.join(forkRoot, "packages", dir);
+  const target = path.join(repoRoot, "node_modules", ...name.split("/"));
+  if (!fs.existsSync(path.join(source, "build"))) {
+    console.error(`missing build for ${dir} in ${source}. Build the fork first.`);
+    problems++;
+    continue;
+  }
+  fs.rmSync(target, { recursive: true, force: true });
+  fs.mkdirSync(target, { recursive: true });
+  fs.copyFileSync(path.join(source, "package.json"), path.join(target, "package.json"));
+  fs.cpSync(path.join(source, "build"), path.join(target, "build"), { recursive: true });
+  console.log(`${name} <- ${path.relative(repoRoot, source)} (installed from the fork)`);
 }
 process.exit(problems ? 1 : 0);

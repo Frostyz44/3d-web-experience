@@ -11,6 +11,8 @@ export const COMPONENT_POSITION_Y = 2;
 export const COMPONENT_POSITION_Z = 3;
 export const COMPONENT_ROTATION_Y = 4;
 export const COMPONENT_STATE = 5;
+// The sender's clock in milliseconds (wrapped), so receivers can place each update on the sender's timeline
+export const COMPONENT_TIME = 6;
 
 // State IDs for binary data
 export const STATE_INTERNAL_CONNECTION_ID = 0;
@@ -53,6 +55,10 @@ export class DeltaNetComponentMapping {
     // State is already an integer
     components.set(COMPONENT_STATE, BigInt(update.state));
 
+    if (update.time !== undefined && Number.isFinite(update.time)) {
+      components.set(COMPONENT_TIME, BigInt(Math.round(update.time)));
+    }
+
     return components;
   }
 
@@ -84,11 +90,13 @@ export class DeltaNetComponentMapping {
     const pz = components.get(COMPONENT_POSITION_Z);
     const ry = components.get(COMPONENT_ROTATION_Y);
     const st = components.get(COMPONENT_STATE);
+    const time = components.get(COMPONENT_TIME);
     dest.position.x = px !== undefined ? Number(px) / positionMultiplier : 0;
     dest.position.y = py !== undefined ? Number(py) / positionMultiplier : 0;
     dest.position.z = pz !== undefined ? Number(pz) / positionMultiplier : 0;
     dest.rotation.eulerY = ry !== undefined ? Number(ry) / rotationMultiplier : 0;
     dest.state = st !== undefined ? Number(st) : 0;
+    dest.time = time !== undefined ? Number(time) : undefined;
     return dest;
   }
 

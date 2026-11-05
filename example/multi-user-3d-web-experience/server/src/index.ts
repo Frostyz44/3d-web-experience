@@ -92,7 +92,7 @@ const networked3dWebExperienceServer = new Networked3dWebExperienceServer({
         url: `ws:///mml-documents/physics.html`,
         position: { x: -22, y: 0.03, z: -38 },
       },
-      // Requires the MML fork: a ball pit with 300 physics balls that players wade through and kick
+      // Requires the MML fork: a ball pit with 800 physics balls (physics v3) that players wade through and kick
       ballPit: {
         url: `ws:///mml-documents/ballpit.html`,
         position: { x: -26, y: 0.02, z: -14 },

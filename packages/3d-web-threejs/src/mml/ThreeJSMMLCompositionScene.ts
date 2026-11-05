@@ -12,6 +12,7 @@ import {
   PositionAndRotation,
   PromptManager,
   PromptProps,
+  RemoteUserPosition,
 } from "@mml-io/mml-web";
 import {
   ThreeJSClickTrigger,
@@ -35,6 +36,8 @@ type ThreeJSMMLCompositionSceneConfig = {
   threeJSCollisionManager: ThreeJSCollisionManager;
   loadingProgressManager: LoadingProgressManager | null;
   getUserPositionAndRotation: () => PositionAndRotation;
+  /** The other users' avatars as drawn this frame (feet positions), for MML content such as physics v3. */
+  getRemoteUserPositions?: () => Array<RemoteUserPosition>;
 };
 
 export class ThreeJSMMLCompositionScene {
@@ -140,6 +143,7 @@ export class ThreeJSMMLCompositionScene {
         this.config.threeJSCollisionManager.removeDebugVisualization(group);
       },
       getUserPositionAndRotation: this.config.getUserPositionAndRotation,
+      getRemoteUserPositions: () => this.config.getRemoteUserPositions?.() ?? [],
       addInteraction: (interaction: Interaction<ThreeJSGraphicsAdapter>) => {
         this.interactionListener.addInteraction(interaction);
       },

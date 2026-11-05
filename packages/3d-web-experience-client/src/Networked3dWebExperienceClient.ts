@@ -750,7 +750,7 @@ export class Networked3dWebExperienceClient extends ClientEventEmitter {
 
     // Update camera manager (computes camera position/rotation from target, input, etc.)
     // Will be synced to renderer's camera in renderer.render()
-    this.cameraManager.update();
+    this.cameraManager.update(undefined, dt);
 
     // Update TweakPane character data if visible (skip expensive operations when hidden)
     if (this.tweakPane.guiVisible && this.characterManager.localController) {

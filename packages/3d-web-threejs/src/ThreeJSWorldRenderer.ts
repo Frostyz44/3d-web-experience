@@ -143,6 +143,7 @@ export class ThreeJSWorldRenderer implements IRenderer {
       collisionsManager: this.collisionsManager,
       threeJSCollisionManager: this.threeJSCollisionManager,
       loadingProgressManager: this.loadingProgressManager,
+      getRemoteUserPositions: () => this.remoteUserPositions,
       getUserPositionAndRotation: () => {
         // Return local character position/rotation
         const localCharData = this.characterManager.getLocalCharacterForMML(this.localCharacterId);
@@ -218,7 +219,28 @@ export class ThreeJSWorldRenderer implements IRenderer {
     this.tweakPane.setupCamPane(this.coreCameraManager);
   }
 
+  /** The remote avatars as drawn in the last frame, for MML (IMMLScene.getRemoteUserPositions). */
+  private remoteUserPositions: Array<{
+    id: number;
+    position: { x: number; y: number; z: number };
+    rotation: { x: number; y: number; z: number };
+  }> = [];
+
   render(state: RenderState): void {
+    this.remoteUserPositions = [];
+    for (const character of state.characters.values()) {
+      if (!character.isLocal) {
+        this.remoteUserPositions.push({
+          id: character.id,
+          position: { x: character.position.x, y: character.position.y, z: character.position.z },
+          rotation: {
+            x: (character.rotation.x * 180) / Math.PI,
+            y: (character.rotation.y * 180) / Math.PI,
+            z: (character.rotation.z * 180) / Math.PI,
+          },
+        });
+      }
+    }
     const startFrameTimeMs = performance.now();
 
     // Update local character ID from render state
