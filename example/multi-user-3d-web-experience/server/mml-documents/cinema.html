@@ -7,8 +7,7 @@
   The player bar only changes the screen's start-time and pause-time (document times), so every user sees the same moment
   of the video, including users who join later.
 
-  Video: "Big Buck Bunny" (c) copyright 2008, Blender Foundation, www.bigbuckbunny.org, licensed under the Creative
-  Commons Attribution 3.0 licence (CC BY 3.0), on the Blender Foundation's official YouTube channel.
+  Video: "Ruff Ryders' Anthem" by DMX, from DMXVEVO on YouTube, shown with YouTube's embedded player.
 -->
 <html>
 <head></head>
@@ -26,9 +25,8 @@
 
   <!-- The screen: frame, the m-youtube element and a back wall -->
   <m-cube x="0" y="4.2" z="-7.15" width="12.6" height="7.35" depth="0.2" color="#15171b"></m-cube>
-  <m-youtube id="screen" video-id="aqz-KE-bpKQ" x="0" y="4.2" z="-7" width="12" height="6.75" loop="true" volume="1" load-distance="45"></m-youtube>
+  <m-youtube id="screen" video-id="https://www.youtube.com/watch?v=ThlhSnRk21E" x="0" y="4.2" z="-7" width="12" height="6.75" loop="true" volume="1" load-distance="45"></m-youtube>
   <m-text x="0" y="8.5" z="-7.1" font-size="0.45" depth="0.08" color="#f2f2f2" content="m-youtube"></m-text>
-  <m-text content="Big Buck Bunny (c) Blender Foundation, www.bigbuckbunny.org, CC BY 3.0" x="0" y="7.98" z="-7.1" font-size="0.13" depth="0.02" color="#9aa3ad"></m-text>
 
   <!-- Seats: three rows of benches with an aisle in the middle -->
   <m-group x="-5" z="5.5">
@@ -91,12 +89,12 @@
     <m-cube id="track" x="0.4" z="0.08" width="7" height="0.09" depth="0.04" color="#3a414c"></m-cube>
     <m-cube id="track-fill" x="-3.1" z="0.1" width="0" height="0.09" depth="0.04" color="#2ad4ff" cast-shadows="false">
       <m-material emissive="#2ad4ff" emissive-intensity="1.4"></m-material>
-      <m-attr-anim id="fill-width" attr="width" start="0" end="7" duration="635000" loop="true"></m-attr-anim>
-      <m-attr-anim id="fill-x" attr="x" start="-3.1" end="0.4" duration="635000" loop="true"></m-attr-anim>
+      <m-attr-anim id="fill-width" attr="width" start="0" end="7" duration="222000" loop="true"></m-attr-anim>
+      <m-attr-anim id="fill-x" attr="x" start="-3.1" end="0.4" duration="222000" loop="true"></m-attr-anim>
     </m-cube>
     <m-sphere id="track-knob" x="-3.1" z="0.12" radius="0.09" color="#ffffff" cast-shadows="false">
       <m-material emissive="#ffffff" emissive-intensity="0.6"></m-material>
-      <m-attr-anim id="knob-x" attr="x" start="-3.1" end="3.9" duration="635000" loop="true"></m-attr-anim>
+      <m-attr-anim id="knob-x" attr="x" start="-3.1" end="3.9" duration="222000" loop="true"></m-attr-anim>
     </m-sphere>
 
     <!-- Time -->
@@ -107,9 +105,9 @@
 <script>
 //<![CDATA[
 (function () {
-  // Length of the video in milliseconds (Big Buck Bunny: 10:35). The document cannot ask YouTube, so it is set here;
+  // Length of the video in milliseconds (Ruff Ryders' Anthem: 3:42). The document cannot ask YouTube, so it is set here;
   // update it when changing the video-id.
-  var durationMs = 635000;
+  var durationMs = 222000;
   var trackLeft = -3.1;
   var trackWidth = 7;
 
